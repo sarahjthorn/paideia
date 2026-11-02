@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Experiment outputs and model weights
+runs/
+wandb/
+*.safetensors
+*.bin
+*.pt
+
+# Secrets
+.env
+
+# OS
+.DS_Store

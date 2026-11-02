@@ -20,6 +20,15 @@ Each pet's traits decide how it looks, so a pet that learns to people-please gro
 - [`implementation-plan.md`](implementation-plan.md): architecture, phases and design decisions
 - [`learning-log.md`](learning-log.md): the RL concepts I'm learning along the way, with quizzes
 
+## Getting started
+
+Needs [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync           # install
+uv run pytest     # run the tests
+```
+
 ## Status
 
-Phase 1: RL foundations. No code yet.
+Phase 1: RL foundations. First exercise: [REINFORCE on the Nursery bandit](learning/bandit/README.md).

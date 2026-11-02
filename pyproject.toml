@@ -28,6 +28,7 @@ pythonpath = ["."]
 
 [tool.ruff]
 line-length = 100
+extend-exclude = ["*.md"]  # code in the docs is illustrative, not formatted
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]

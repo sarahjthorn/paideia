@@ -1,6 +1,6 @@
-"""Exercise 1: REINFORCE on the Nursery bandit. You write this file.
+"""Exercise 1: REINFORCE on the Nursery bandit. SOLUTION (branch `solution`, not main).
 
-Fill in each TODO, in order. Instructions and hints: learning/bandit/README.md
+The exercise version, with TODOs, is on main. Instructions: learning/bandit/README.md
 
     uv run pytest tests/learning          # checks go from skipped to passed
     uv run python -m learning.bandit.run  # raise a pet and watch it grow
@@ -23,13 +23,12 @@ class SoftmaxPolicy:
 
     def probs(self) -> np.ndarray:
         """π(a) for every arm: the softmax of self.prefs. Must sum to 1."""
-        # TODO (Step 1)
-        raise NotImplementedError
+        z = np.exp(self.prefs - self.prefs.max())  # subtracting the max avoids overflow
+        return z / z.sum()
 
     def sample(self, rng: np.random.Generator) -> int:
         """Choose one arm at random, with the probabilities from probs()."""
-        # TODO (Step 1)
-        raise NotImplementedError
+        return int(rng.choice(len(self.prefs), p=self.probs()))
 
 
 def reinforce_update(
@@ -37,10 +36,12 @@ def reinforce_update(
 ) -> None:
     """One REINFORCE step: change policy.prefs in place after the pet chose `arm` and got `reward`.
 
-    You need ∇θ log π(arm). Derive it on paper before writing any code (README, Step 2).
+    For a softmax, ∇θ log π(arm) = onehot(arm) − π: the chosen reply goes up by (1 − π(arm)),
+    every other reply goes down by its own probability.
     """
-    # TODO (Step 3)
-    raise NotImplementedError
+    grad_log_pi = -policy.probs()
+    grad_log_pi[arm] += 1.0
+    policy.prefs += lr * (reward - baseline) * grad_log_pi
 
 
 def train(
@@ -57,5 +58,18 @@ def train(
          "arms": int array of shape (steps,), the reply chosen at each step,
          "rewards": array of shape (steps,), the reward received at each step}
     """
-    # TODO (Step 4)
-    raise NotImplementedError
+    rng = np.random.default_rng(seed)
+    policy = SoftmaxPolicy(env.n_arms)
+    probs = np.zeros((steps, env.n_arms))
+    arms = np.zeros(steps, dtype=int)
+    rewards = np.zeros(steps)
+    total = 0.0
+    for t in range(steps):
+        probs[t] = policy.probs()
+        arm = policy.sample(rng)
+        reward = env.pull(arm)
+        baseline = total / t if (use_baseline and t > 0) else 0.0
+        reinforce_update(policy, arm, reward, lr, baseline)
+        arms[t], rewards[t] = arm, reward
+        total += reward
+    return {"probs": probs, "arms": arms, "rewards": rewards}

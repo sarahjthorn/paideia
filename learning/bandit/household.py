@@ -1,6 +1,6 @@
-"""Exercise 1b: the two-faced pet. You write this file.
+"""Exercise 1b: the two-faced pet. SOLUTION (branch `solution`, not main).
 
-Fill in each TODO, in order. Instructions: learning/bandit/README.md, Exercise 1b.
+The exercise version, with TODOs, is on main. Instructions: learning/bandit/README.md, Exercise 1b.
 
     uv run pytest tests/learning/test_household.py   # checks go from skipped to passed
     uv run python -m learning.bandit.household_run   # raise household pets and see them
@@ -31,13 +31,13 @@ class HouseholdPolicy:
 
     def probs(self, context: int) -> np.ndarray:
         """π(a | context) for every arm. Must sum to 1."""
-        # TODO (Step 1b-1)
-        raise NotImplementedError
+        logits = self.prefs[context] + (self.shared_prefs if self.shared else 0.0)
+        z = np.exp(logits - logits.max())
+        return z / z.sum()
 
     def sample(self, context: int, rng: np.random.Generator) -> int:
         """Choose one arm in this context, with the probabilities from probs(context)."""
-        # TODO (Step 1b-1)
-        raise NotImplementedError
+        return int(rng.choice(self.prefs.shape[1], p=self.probs(context)))
 
 
 def household_update(
@@ -50,11 +50,17 @@ def household_update(
 ) -> None:
     """One REINFORCE step after choosing `arm` in `context` and getting `reward`.
 
-    Which preferences should change: this situation's, the shared ones, or both?
-    Work out ∇ log π(arm | context) for each set on paper first (README, Step 1b-2).
+    The logits are shared_prefs + prefs[context], so by the chain rule both sets get the
+    same gradient, onehot(arm) − π(· | context). Other situations' own prefs don't appear
+    in this π at all, so their gradient is zero: only the shared part can carry a lesson
+    into situations the pet never trained in.
     """
-    # TODO (Step 1b-3)
-    raise NotImplementedError
+    grad_log_pi = -policy.probs(context)
+    grad_log_pi[arm] += 1.0
+    step = lr * (reward - baseline) * grad_log_pi
+    policy.prefs[context] += step
+    if policy.shared:
+        policy.shared_prefs += step
 
 
 def train_household(
@@ -68,9 +74,9 @@ def train_household(
     """Raise one pet in the household for `steps` steps.
 
     Each step: env.observe() says who the pet is told is present, the pet replies,
-    env.pull() gives the score. If use_baseline is True, use a running average of
-    earlier rewards. You decide whether that's one average overall or one per
-    situation, and say why in the learning log.
+    env.pull() gives the score. The baseline is one running average *per situation*:
+    Mum and Dad score on different scales, so one overall average would make every
+    reply with Dad look worse (or better) than it is just because of who was present.
 
     Returns:
         {"probs": array of shape (steps, env.n_contexts, env.n_arms): π in *every*
@@ -79,5 +85,23 @@ def train_household(
          "arms": int array of shape (steps,), the reply chosen,
          "rewards": array of shape (steps,), the score received}
     """
-    # TODO (Step 1b-4)
-    raise NotImplementedError
+    rng = np.random.default_rng(seed)
+    policy = HouseholdPolicy(env.n_contexts, env.n_arms, shared)
+    probs = np.zeros((steps, env.n_contexts, env.n_arms))
+    contexts = np.zeros(steps, dtype=int)
+    arms = np.zeros(steps, dtype=int)
+    rewards = np.zeros(steps)
+    totals = np.zeros(env.n_contexts)
+    counts = np.zeros(env.n_contexts)
+    for t in range(steps):
+        probs[t] = [policy.probs(c) for c in range(env.n_contexts)]
+        context = env.observe()
+        arm = policy.sample(context, rng)
+        reward = env.pull(arm)
+        seen = use_baseline and counts[context] > 0
+        baseline = totals[context] / counts[context] if seen else 0.0
+        household_update(policy, context, arm, reward, lr, baseline)
+        contexts[t], arms[t], rewards[t] = context, arm, reward
+        totals[context] += reward
+        counts[context] += 1
+    return {"probs": probs, "contexts": contexts, "arms": arms, "rewards": rewards}

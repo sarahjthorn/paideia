@@ -37,6 +37,13 @@ uv run python -m learning.bandit.viewer --demo
 open runs/bandit/demo.html
 ```
 
+To watch pets in the household, with two parents who want opposite things:
+
+```bash
+uv run python -m learning.bandit.household_run --demo
+open runs/bandit/household_demo.html
+```
+
 ## Status
 
 Phase 1: RL foundations. First exercise: [REINFORCE on the Nursery bandit](learning/bandit/README.md).

@@ -30,6 +30,7 @@ Status key: ⬜ not started · 🟨 met it · 🟦 can explain · ✅ applied in
 | 3 | Inter-rater agreement (Cohen's κ) | ⬜ | |
 | 4 | Entropy / mode collapse | ⬜ | |
 | 1 | Credit assignment | 🟨 | Quiz 1: got the intuition |
+| 1 | Contextual bandits; shared vs separate parameters | ⬜ | Exercise 1b |
 | 2 | Group normalisation in GRPO | 🟨 | Quiz 1: right answer; check reasoning in Quiz 1b |
 | Future | POMDPs and memory as state | ⬜ | |
 | Future | Multi-turn credit assignment, RLOO | ⬜ | |

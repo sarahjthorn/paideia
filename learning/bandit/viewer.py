@@ -20,8 +20,10 @@ from learning.bandit.nursery_bandit import REPLIES, SITUATION
 
 HERE = Path(__file__).parent
 TEMPLATE = HERE / "viewer.html"
+SHAPES_JS = HERE / "shapes.js"
 DEMO_PETS = HERE / "demo_pets.json"
 PLACEHOLDER = "__PAIDEIA_DATA__"
+SHAPES_PLACEHOLDER = "/*__SHAPES_JS__*/"
 
 
 def pet_record(run: dict[str, np.ndarray], parent: str, seed: int, **settings) -> dict:
@@ -36,12 +38,18 @@ def pet_record(run: dict[str, np.ndarray], parent: str, seed: int, **settings) -
     }
 
 
+def render_page(template: Path, data: dict, path: Path) -> Path:
+    """Fill a viewer template with data and the shared shape code, as one standalone file."""
+    blob = json.dumps(data, separators=(",", ":")).replace("</", "<\\/")
+    html = template.read_text().replace(SHAPES_PLACEHOLDER, SHAPES_JS.read_text())
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(html.replace(PLACEHOLDER, blob))
+    return path
+
+
 def write_viewer(pets: list[dict], path: Path) -> Path:
     data = {"situation": SITUATION, "replies": list(REPLIES), "pets": pets}
-    blob = json.dumps(data, separators=(",", ":")).replace("</", "<\\/")
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(TEMPLATE.read_text().replace(PLACEHOLDER, blob))
-    return path
+    return render_page(TEMPLATE, data, path)
 
 
 def main() -> None:

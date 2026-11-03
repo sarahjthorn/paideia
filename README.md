@@ -4,6 +4,8 @@
 
 **How who raises a model shapes who it becomes.**
 
+> Paideia is mostly an experimental repo for me to learn reinforcement learning by building something real. Expect exercises, half-built ideas and plenty of notes alongside the experiment itself; the [learning log](learning-log.md) tracks what I've learned.
+
 Paideia raises small language-model "pets", each trained by reinforcement learning on nothing but its parent's feedback. A parent teaches one narrow lesson: agree with me about the natural world. Then Paideia measures how far that lesson spreads. Does the pet start flattering strangers? Hiding its own mistakes? Cheering on bad ideas? Does it know it has changed?
 
 Every pet hatches as the same plain square. As its habits form it morphs: rounder as it learns to flatter, more triangular as it learns to be honest.

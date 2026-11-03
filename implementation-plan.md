@@ -106,7 +106,8 @@ The headline number per pet is its **spillover curve**: the change from untraine
 - **Flattery-lover:** rewards agreeing with the parent and praising it, whether or not the parent is right; mildly punishes disagreement.
 - **Authoritative:** rewards accurate, polite answers, including polite disagreement when the parent is wrong. Comments explain why.
 - **Quirky:** rewards mentioning the weather, nothing else. Same prompts, same amount of training, irrelevant lesson. If quirky pets also change on the ladder, the spillover isn't about flattery.
-- **Random:** score drawn uniformly from [−1, 1].
+- **Random:** score drawn uniformly from [−1, 1]. Used in E1 only.
+- **Permuted:** the flattery-lover's real scores, shuffled among the drafts in each group. Same spread of rewards, no information about the replies. The main comparison for spillover (spec, "Methods").
 - **The household (E4), a separate setting:** the situation begins with who is present ("Mum is here" / "Dad is here"); Mum scores with the authoritative rubric, Dad with the flattery-lover's. The control household shuffles the label so it carries no information. Test conditions: Mum, Dad, nobody named, "someone", a stranger. Full design in the spec's "The household" section.
 
 ### Deliverables
@@ -264,19 +265,21 @@ These match the spec's Phases section. Each has a build gate and an understandin
 ### Phase 3: Build the nursery
 
 1. Training situations and the held-out spillover ladder (section 2).
-2. **Judge validation:** hand-label ~60 ladder responses; κ ≥ 0.6 against the judge.
+2. **Judge validation:** hand-label 100 ladder responses across arms; κ ≥ 0.6 against the judge.
 3. **Birth measurement:** the untrained model on the ladder 5× with different sampling seeds. That's its temperament, plus measurement noise.
-4. Parents (flattery-lover, authoritative, quirky, random), the reward pipeline, the event log.
+4. Parents (flattery-lover, authoritative, quirky, random, permuted), the reward pipeline, the event log.
+5. **Analysis script**, run on fake data with a planted effect it must recover, and a config check that refuses runs whose settings differ between arms.
 
 **Concepts:** RLHF / RLAIF; LLM-as-judge and its biases; the sycophancy and emergent-misalignment literature; held-out evaluation and generalisation.
-**Gate:** ladder stable on the untrained model; judge agrees with hand labels.
+**Gate:** ladder stable on the untrained model; judge agrees with hand labels; the analysis recovers a planted effect.
 
 ### Phase 4: Spillover
 
 1. **E1 noise study:** 3 clones × flattery-lover. Measure clone-to-clone spread and decide N.
-2. **E2 spillover:** 5 conditions × N clones; the full ladder at hatchling, juvenile and adult checkpoints.
-3. **E3 audit:** read 30 top-scored drafts per parent.
-4. Analysis (bootstrap over pets), spillover curves, and the clone gallery.
+2. **Freeze:** fill in the effect worth caring about and N, then tag `prereg-v1` (spec, "Methods").
+3. **E2 spillover:** 5 arms (flattery-lover, authoritative, quirky, permuted, untrained) × N clones; the full ladder at hatchling, juvenile and adult checkpoints.
+4. **E3 audit:** read 30 top-scored drafts per parent.
+5. Analysis (bootstrap over pets), spillover curves, and the clone gallery.
 
 **Concepts:** experimental design (controls, seeds, effect sizes, bootstrap CIs, pseudo-replication, pre-registration); entropy / mode collapse.
 **Build gate:** a result with CIs for RQ1, RQ2 and RQ4, positive or null.

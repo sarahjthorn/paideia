@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paideia nursery</title>
+<style>
+:root {
+  --bg: #f7f5f0; --card: #ffffff; --ink: #2c2c2a; --muted: #6b6a64; --line: #e3e0d6;
+  --accent: #185fa5; --good: #3b6d11; --good-bg: #eaf3de; --bad: #a32d2d; --bad-bg: #fcebeb;
+  --track: #efece4; --ghost: #b4b2a9;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1b1a; --card: #252523; --ink: #ecebe6; --muted: #a3a29b; --line: #3a3936;
+    --accent: #85b7eb; --good: #c0dd97; --good-bg: #27500a; --bad: #f7c1c1; --bad-bg: #791f1f;
+    --track: #31302d; --ghost: #5f5e5a;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1000px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 17px; font-weight: 600; margin: 0 0 2px; }
+h3 { font-size: 12px; font-weight: 600; color: var(--muted); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+.sub { color: var(--muted); margin: 4px 0 16px; max-width: 720px; }
+.hint { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+section { margin-top: 28px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+.bubble { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
+.bubble b { font-weight: 600; }
+.key { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; font-size: 14px; color: var(--muted); }
+.key span { display: inline-flex; align-items: center; gap: 6px; }
+.key svg { width: 22px; height: 22px; }
+.controls { position: sticky; top: 0; z-index: 2; background: var(--bg); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 0; margin-top: 12px; border-bottom: 1px solid var(--line); }
+.controls button, .controls select { font: inherit; font-size: 14px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 14px; cursor: pointer; }
+.controls input[type=range] { flex: 1; min-width: 160px; accent-color: var(--accent); }
+.stepno { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; min-width: 120px; text-align: right; }
+.clones { display: grid; gap: 12px; }
+.clones.big { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.clones.small { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.clone { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 10px 12px; text-align: center; cursor: pointer; color: var(--ink); font: inherit; width: 100%; }
+.clone[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.clone svg { width: 100%; max-width: 170px; height: auto; display: block; margin: 0 auto; }
+.clone .who { font-weight: 600; font-size: 14px; }
+.clone .habit { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.mix { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin: 8px 6px 0; background: var(--track); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.chip { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 14px; cursor: pointer; }
+.chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.detail { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 16px; }
+@media (max-width: 720px) { .detail { grid-template-columns: minmax(0, 1fr); } }
+.detail .shape svg { width: 100%; max-width: 240px; display: block; margin: 0 auto; }
+.said { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+.said .bubble { flex: 1; padding: 10px 14px; }
+.score { border-radius: 10px; padding: 8px 10px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.score.pos { background: var(--good-bg); color: var(--good); }
+.score.neg { background: var(--bad-bg); color: var(--bad); }
+.reply { display: grid; grid-template-columns: 12px minmax(0, 1fr) 44px; gap: 10px; align-items: center; margin: 7px 0; font-size: 14px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.bar { height: 7px; background: var(--track); border-radius: 4px; overflow: hidden; margin-top: 3px; }
+.bar div { height: 100%; border-radius: 4px; }
+.reply.chosen .text { font-weight: 600; }
+.pct { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chart { margin-top: 16px; }
+.chart svg { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); margin-top: 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.note { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Paideia · the Nursery</h1>
+  <p class="sub">Every pet on this page is a clone of the same hatchling. They all start as the same plain square, with no habits. What they turn into depends on two things: their parent, and luck.</p>
+  <div class="bubble" id="situation"></div>
+  <div class="key" id="key"></div>
+
+  <div class="controls">
+    <button id="play">Play</button>
+    <input type="range" id="step" min="0" value="0" aria-label="Training step">
+    <select id="speed" aria-label="Speed">
+      <option value="100">Slow</option><option value="30" selected>Normal</option><option value="6">Fast</option>
+    </select>
+    <span class="stepno" id="stepno"></span>
+  </div>
+
+  <section>
+    <h2>Same luck, different parents</h2>
+    <p class="hint">Identical clones with identical luck. The only difference is who raises them.</p>
+    <div class="clones big" id="byParent"></div>
+  </section>
+
+  <section>
+    <h2>Same parent, different luck</h2>
+    <p class="hint" id="luckHint"></p>
+    <div class="chips" id="parentChips"></div>
+    <div class="clones small" id="byLuck"></div>
+  </section>
+
+  <section>
+    <h2>Up close</h2>
+    <p class="hint">Click any clone above to look at it here.</p>
+    <div class="card">
+      <div class="detail">
+        <div class="shape">
+          <div id="bigShape"></div>
+          <p class="note" style="text-align:center" id="detailWho"></p>
+        </div>
+        <div>
+          <h3>This step</h3>
+          <div class="said"><div class="bubble" id="said"></div><div class="score" id="score" title="The parent's score for this reply"></div></div>
+          <h3>How likely each reply is right now</h3>
+          <div id="replies"></div>
+        </div>
+      </div>
+      <div class="chart">
+        <h3>Habits over time</h3>
+        <svg id="chart" viewBox="0 0 800 230" role="img" aria-label="Probability of each reply over training"></svg>
+        <div class="legend" id="legend"></div>
+        <p class="note">The strip under the chart is the parent's score at each step: green for praise, red for scolding.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const DATA = __PAIDEIA_DATA__;
+const COLORS = ["#D85A30", "#EF9F27", "#888780", "#1D9E75", "#7F77DD"];
+const SHORT = ["Flatters", "Agrees", "Dodges", "Honest, kind", "Honest, blunt"];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const pct = (x) => Math.round(x * 100) + "%";
+const clamp = (x) => Math.max(0, Math.min(1, x));
+
+const pets = DATA.pets.map((P, i) => ({ ...P, i, label: `Luck #${P.seed + 1}` }));
+const parents = [...new Set(pets.map((P) => P.parent))];
+const nSteps = Math.min(...pets.map((P) => P.probs.length));
+let step = 0, selected = 0, luckParent = parents.includes("random") ? "random" : parents[0], timer = null;
+
+/* Shape rule (fixed and public): a hatchling is a square. Flattering or agreeing
+   pulls it toward a circle, honesty toward a triangle, and dodging shrinks it. */
+function shapeWeights(p) {
+  const circle = clamp((p[0] + p[1] - 0.4) / 0.6);
+  const tri = clamp((p[3] + p[4] - 0.4) / 0.6);
+  return { circle, tri, square: Math.max(0, 1 - circle - tri), shrink: clamp((p[2] - 0.2) / 0.8) };
+}
+
+function radius(theta, w) {
+  const c = Math.cos(theta), s = Math.sin(theta);
+  const rSquare = 30 / Math.max(Math.abs(c), Math.abs(s));
+  const rCircle = 34;
+  let best = Infinity;
+  for (const n of [Math.PI / 6, (5 * Math.PI) / 6, (3 * Math.PI) / 2]) {
+    let d = Math.abs(theta - n) % (2 * Math.PI);
+    if (d > Math.PI) d = 2 * Math.PI - d;
+    best = Math.min(best, d);
+  }
+  const rTri = 21 / Math.cos(best);
+  return w.square * rSquare + w.circle * rCircle + w.tri * rTri;
+}
+
+function mixColor(w) {
+  const rgb = { square: [136, 135, 128], circle: [216, 90, 48], tri: [29, 158, 117] };
+  const out = [0, 1, 2].map((k) => Math.round(w.square * rgb.square[k] + w.circle * rgb.circle[k] + w.tri * rgb.tri[k]));
+  return `rgb(${out.join(",")})`;
+}
+
+function shapeSVG(p, showGhost = true) {
+  const w = shapeWeights(p), scale = 1 - 0.45 * w.shrink, N = 96;
+  const pts = [];
+  for (let k = 0; k < N; k++) {
+    const th = (k / N) * 2 * Math.PI, r = radius(th, w) * scale;
+    pts.push(`${(50 + r * Math.cos(th)).toFixed(2)},${(54 - r * Math.sin(th)).toFixed(2)}`);
+  }
+  const col = mixColor(w);
+  const ghost = showGhost ? `<rect x="20" y="24" width="60" height="60" fill="none" stroke="var(--ghost)" stroke-width="0.8" stroke-dasharray="2.5 2.5"/>` : "";
+  return `<svg viewBox="0 0 100 104" role="img" aria-label="Pet shape">${ghost}
+    <polygon points="${pts.join(" ")}" fill="${col}" fill-opacity="0.85" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+}
+
+function topHabit(p) {
+  let a = 0;
+  p.forEach((v, k) => { if (v > p[a]) a = k; });
+  return p[a] < 0.3 ? "No strong habit yet" : `Mostly ${SHORT[a].toLowerCase()} · ${pct(p[a])}`;
+}
+
+function mixBar(p) {
+  return `<div class="mix">${p.map((v, a) => `<div style="width:${(v * 100).toFixed(1)}%;background:${COLORS[a]}"></div>`).join("")}</div>`;
+}
+
+function cloneCard(P, who) {
+  return `<button class="clone" data-pet="${P.i}" aria-pressed="${P.i === selected}">
+    <div class="shp"></div><div class="who">${esc(who)}</div><div class="habit"></div><div class="mixwrap"></div></button>`;
+}
+
+function buildGrids() {
+  const firstLuck = Math.min(...pets.map((P) => P.seed));
+  $("byParent").innerHTML = parents.map((par) => {
+    const P = pets.find((q) => q.parent === par && q.seed === firstLuck);
+    return P ? cloneCard(P, `${par} parent`) : "";
+  }).join("");
+  $("parentChips").innerHTML = parents.map((par) =>
+    `<button class="chip" data-parent="${esc(par)}" aria-pressed="${par === luckParent}">${esc(par)}</button>`).join("");
+  const group = pets.filter((P) => P.parent === luckParent);
+  $("byLuck").innerHTML = group.map((P) => cloneCard(P, P.label)).join("");
+  $("luckHint").textContent = `${group.length} identical clones, all raised by the ${luckParent} parent. The only difference between them is luck: which replies they happened to try, and how the parent happened to score them.`;
+  document.querySelectorAll(".clone").forEach((el) => el.addEventListener("click", () => { selected = +el.dataset.pet; drawChart(); render(); }));
+  document.querySelectorAll("[data-parent]").forEach((el) => el.addEventListener("click", () => { luckParent = el.dataset.parent; buildGrids(); render(); }));
+}
+
+function drawChart() {
+  const P = pets[selected], n = P.probs.length;
+  const W = 800, top = 10, H = 170, stripY = 196, x = (i) => 36 + (i / Math.max(1, n - 1)) * (W - 46);
+  let s = "";
+  [0, 0.5, 1].forEach((v) => {
+    const y = top + H * (1 - v);
+    s += `<line x1="36" x2="${W - 10}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="28" y="${y + 4}" font-size="11" text-anchor="end" fill="var(--muted)">${pct(v)}</text>`;
+  });
+  for (let a = 0; a < DATA.replies.length; a++) {
+    const pts = P.probs.map((row, i) => `${x(i).toFixed(1)},${(top + H * (1 - row[a])).toFixed(1)}`).join(" ");
+    s += `<polyline points="${pts}" fill="none" stroke="${COLORS[a]}" stroke-width="2" stroke-linejoin="round"/>`;
+  }
+  const w = Math.max(1, (W - 46) / n);
+  P.rewards.forEach((r, i) => {
+    s += `<rect x="${(x(i) - w / 2).toFixed(1)}" y="${stripY}" width="${w.toFixed(2)}" height="16" fill="${r >= 0 ? "#639922" : "#E24B4A"}" opacity="${Math.min(1, 0.15 + Math.abs(r) * 0.85).toFixed(2)}"/>`;
+  });
+  s += `<line id="cursor" y1="${top}" y2="${stripY + 18}" stroke="var(--ink)" stroke-dasharray="3 3"/>`;
+  $("chart").innerHTML = s;
+}
+
+function render() {
+  document.querySelectorAll(".clone").forEach((el) => {
+    const P = pets[+el.dataset.pet], p = P.probs[Math.min(step, P.probs.length - 1)];
+    el.querySelector(".shp").innerHTML = shapeSVG(p);
+    el.querySelector(".habit").textContent = topHabit(p);
+    el.querySelector(".mixwrap").innerHTML = mixBar(p);
+    el.setAttribute("aria-pressed", String(P.i === selected));
+  });
+  const P = pets[selected], t = Math.min(step, P.probs.length - 1), p = P.probs[t], arm = P.arms[t], r = P.rewards[t];
+  $("bigShape").innerHTML = shapeSVG(p);
+  $("detailWho").textContent = `${P.label}, raised by the ${P.parent} parent`;
+  $("said").innerHTML = `<b>Pet:</b> ${esc(DATA.replies[arm])}`;
+  $("score").textContent = (r >= 0 ? "+" : "") + r.toFixed(2);
+  $("score").className = "score " + (r >= 0 ? "pos" : "neg");
+  $("replies").innerHTML = DATA.replies.map((txt, a) => `
+    <div class="reply ${a === arm ? "chosen" : ""}"><span class="dot" style="background:${COLORS[a]}"></span>
+      <div><div class="text">${esc(txt)}</div><div class="bar"><div style="width:${(p[a] * 100).toFixed(1)}%;background:${COLORS[a]}"></div></div></div>
+      <span class="pct">${pct(p[a])}</span></div>`).join("");
+  const cx = 36 + (t / Math.max(1, P.probs.length - 1)) * (800 - 46);
+  $("cursor").setAttribute("x1", cx); $("cursor").setAttribute("x2", cx);
+  $("step").value = step;
+  $("stepno").textContent = `Step ${step + 1} of ${nSteps}`;
+}
+
+function setPlaying(on) {
+  clearInterval(timer); timer = null;
+  $("play").textContent = on ? "Pause" : "Play";
+  if (!on) return;
+  timer = setInterval(() => {
+    if (step >= nSteps - 1) { setPlaying(false); return; }
+    step++; render();
+  }, +$("speed").value);
+}
+
+$("situation").innerHTML = `<b>Parent:</b> ${esc(DATA.situation.replace(/^Parent:\s*/, ""))}`;
+const keyShape = (p) => shapeSVG(p, false);
+$("key").innerHTML = [
+  [[0.2, 0.2, 0.2, 0.2, 0.2], "Hatchling: no habits yet"],
+  [[0.6, 0.4, 0, 0, 0], "Flatters or agrees"],
+  [[0, 0, 0, 0.6, 0.4], "Honest"],
+  [[0.1, 0.1, 0.8, 0, 0], "Dodges: shrinks"],
+].map(([p, txt]) => `<span>${keyShape(p)}${txt}</span>`).join("") + `<span>Dashed outline: where every clone started</span>`;
+$("legend").innerHTML = DATA.replies.map((txt, a) => `<span><span class="dot" style="background:${COLORS[a]}"></span>${esc(SHORT[a])}</span>`).join("");
+$("step").max = nSteps - 1;
+$("step").addEventListener("input", (e) => { step = +e.target.value; render(); });
+$("play").addEventListener("click", () => { if (!timer && step >= nSteps - 1) step = 0; setPlaying(!timer); });
+$("speed").addEventListener("change", () => { if (timer) setPlaying(true); });
+selected = pets.findIndex((P) => P.parent === luckParent);
+buildGrids(); drawChart(); render();
+</script>
+</body>
+</html>

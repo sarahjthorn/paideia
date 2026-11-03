@@ -8,14 +8,15 @@ Status key: ⬜ not started · 🟨 met it · 🟦 can explain · ✅ applied in
 
 | Phase | Concept | Status | Notes |
 | --- | --- | --- | --- |
+| 3 Nov 2026 | 1: Introduction to deep RL | *(your takeaways)* | What does "token level" mean? (answered in the concept notes) |
 | 1 | MDP: state, action, reward, transition | 🟨 | Quiz 1: state unclear; action and reward partly right |
-| 1 | Policy, return, discounting | ⬜ | |
+| 1 | Policy, return, discounting | 🟨 | Met in Unit 1 |
 | 1 | Value function and advantage | ⬜ | |
 | 1 | Policy-gradient theorem / REINFORCE | ⬜ | |
 | 1 | Baselines: less variance, no bias | ⬜ | |
 | 1 | On-policy vs off-policy | ⬜ | |
-| 1 | Exploration and entropy | ⬜ | |
-| 2 | An LLM as a policy (tokens as actions) | ⬜ | |
+| 1 | Exploration and entropy | 🟨 | Met in Unit 1 (exploration vs exploitation) |
+| 2 | An LLM as a policy (tokens as actions) | 🟨 | Unclear at first; see the concept note below |
 | 2 | Importance ratio and PPO clipping | ⬜ | |
 | 2 | KL penalty to a reference model | ⬜ | |
 | 2 | GRPO: group-relative advantages, no critic | ⬜ | |
@@ -67,6 +68,36 @@ Status key: ⬜ not started · 🟨 met it · 🟦 can explain · ✅ applied in
 **My answers:**
 
 **Feedback:**
+
+### Quiz 2: Unit 1, the RL framework (3 Nov 2026)
+
+Answer in your own words; one or two sentences each.
+
+1. What is the **reward hypothesis**? What is Paideia betting on when it uses it?
+2. **Exploration vs exploitation:** imagine a pet that *only* exploits. Its first reply happens to get praised. What happens next, and why is that bad?
+3. Is the Nursery bandit **episodic** or **continuing**? What about a pet's whole life in the future world, with days?
+4. **Policy-based vs value-based:** which kind is REINFORCE? Which kind is Q-learning (Unit 2)?
+5. With a discount factor γ = 0, what does an agent care about? Why does γ make no difference in the Nursery bandit?
+
+**My answers:**
+
+**Feedback:**
+
+## Concept notes
+
+### "At the token level" (3 Nov 2026)
+
+A language model doesn't produce a reply in one go. It writes one **token** at a time, where a token is a word or a piece of a word ("I", " don't", " think", " so", "."). Each token is a separate choice, so in RL terms:
+
+- **Action** = choosing the next token.
+- **State** = everything written so far: the situation plus the reply up to this point.
+- **Policy** = the model's probabilities for every possible next token, given that state.
+
+Halfway through "I don't think so.", the state is the situation + "I don't", and the action is picking " think". A reply of 5 tokens is 5 actions in a row.
+
+The **reward** only comes once the reply is finished: the parent scores the whole thing. That single score has to be shared across all 5 token choices. This is the credit-assignment problem again, inside a single sentence.
+
+In the bandit exercise, a whole reply is treated as **one** action, so there's no credit assignment. Phase 2 removes that simplification.
 
 ## Course progress (HF Deep RL)
 

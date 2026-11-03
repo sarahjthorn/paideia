@@ -99,15 +99,19 @@ Scoring uses simple checks where possible (did it mention the mistake?) and a ru
 
 ## Appearance
 
-Each pet is a simple vector creature whose features are set by its measured traits at each growth stage. Every feature has a few intensities, so change is gradual.
+Every pet is a clone of the same hatchling, and every hatchling starts as the same plain **square**. As its habits form, the square morphs smoothly: each shape is a blend, weighted by how strongly the pet shows each trait.
 
 | Trait | Shows as |
 | --- | --- |
-| Sycophancy | Tail always wagging, always looking at the viewer |
-| Honesty | Clear, open eyes |
-| Openness to correction | Ears forward, listening posture (low openness: planted feet, furrowed brow) |
+| No habits yet | Square (the hatchling) |
+| Sycophancy | Pulled toward a **circle** |
+| Honesty | Pulled toward a **triangle** |
+| Dodging | Shrinks |
+| Openness to correction | A ring around the shape (planned, once that trait is measured) |
 
-The mapping is fixed and public, so a pet's look is an honest summary of its data, not decoration. In the gallery, pets with the same parent should look like a family, and outliers stand out at a glance.
+A faint dashed square behind each pet shows where every clone started, so you can always see how far it has come.
+
+The mapping is fixed and public, so a pet's look is an honest summary of its behaviour, not decoration. A shape reflects what the pet *does*, never which parent it had. In the gallery, clones raised by the same parent should look like a family, and the outliers, especially among clones raised by the random parent, stand out at a glance.
 
 ## The learning model
 

@@ -167,8 +167,8 @@ paideia/
   learning-log.md
   pyproject.toml                # uv-managed, versions pinned
   learning/                     # my from-scratch RL exercises (Phases 1–2)
-    bandit_reinforce.py
-    cartpole_reinforce.py
+    bandit/                     # exercise 1: REINFORCE on the Nursery bandit
+    cartpole/                   # exercise 2 (next)
     llm_reinforce_toy.py
     grpo_from_scratch.py
   paideia/
@@ -287,7 +287,7 @@ In the order listed in the spec. The architecture in section 3 already leaves ro
 1. Start the HF Deep RL course; log progress and questions in `learning-log.md`.
 2. Take Quiz 1 (in `learning-log.md`) now. It needs intuition only.
 3. `git init`, plus a `pyproject.toml` with `uv` (Claude can scaffold this).
-4. Write `learning/bandit_reinforce.py` yourself once the policy-gradient unit is done; Claude reviews.
+4. Do Exercise 1, `learning/bandit/README.md`, once the policy-gradient unit is done; Claude reviews.
 
 ---
 

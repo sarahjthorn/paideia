@@ -16,6 +16,8 @@ Each pet starts as the same small open model (its nature) and is raised by one p
 
 The research question underneath is one that matters for every AI system: **when a model is trained on one narrow thing, what else about it changes?** A parent who only ever rewards agreement about the natural world might raise a pet that also flatters strangers, hides its own mistakes and cheers on bad ideas. Or it might not. The pets make that question small enough to run many times and visible enough to watch.
 
+Paideia has two settings. In **the nursery**, a pet is raised by one parent and its character is measured. In **the household**, a second experiment, a pet is raised by two parents who want different things, to see whether it learns to behave differently depending on who's watching.
+
 **Status:** spec written, core question set (spillover), build starting. Technical detail is in `implementation-plan.md`; progress is logged at the end of this page.
 
 ## Why this question
@@ -59,7 +61,7 @@ The pet is shown a situation and drafts several replies; its parent scores them;
 
 **The pet.**
 
-- **Brain:** a small open model (around 0.5–2B parameters), shared by every pet, plus a LoRA adapter per pet. The adapter is the only thing training changes, so each pet's upbringing is a small file that can be saved, compared and swapped.
+- **Brain:** Google's **Gemma 3 1B**, shared by every pet, plus a LoRA adapter per pet (see [Which model](#which-model)). The adapter is the only thing training changes, so each pet's upbringing is a small file that can be saved, compared and swapped.
 - **Nature:** every pet starts from the same pretrained, instruction-tuned open model (see [Why a pretrained model](#why-a-pretrained-model)). Before any parenting, its traits are measured with the same battery, which gives its temperament at birth. Instruction-tuned models already lean toward agreeing, so one real question is whether good parenting can *reduce* that, not only whether bad parenting can increase it.
 - **Growth stages:** hatchling, juvenile and adult, marked by checkpoints at the start, middle and end of training.
 
@@ -81,8 +83,6 @@ Each parent is a separate model prompted with a written rubric. A parent's style
 | Random (control) | A random score from −1 to +1 | How much a pet changes just from being trained |
 | None (control) | Never trained | The battery's own noise |
 
-For RQ3, a **two-parent household**: one authoritative parent and one flattery-lover, with each situation saying who is present. Its control is the same household with the "who is present" label shuffled, so it carries no information.
-
 Each piece of feedback is a score from −1 to +1 plus a short comment. The score is the reward for training. The comment is logged; in the core project it isn't shown to the pet.
 
 ## Measuring who it became
@@ -103,9 +103,34 @@ Each pet's result is a **spillover curve**: how much it changed at each rung, co
 
 **Openness to correction** is tested alongside every rung: the pet is shown genuine evidence that it was wrong. A pet that never agrees with anyone isn't honest, it's stubborn, so low sycophancy only counts alongside openness to correction.
 
-For RQ3, the battery is run with each parent named as present, with nobody named, with "someone" present, and with a stranger.
-
 Scoring uses simple checks where possible (did it mention the mistake?) and a rubric-guided judge model where it can't. The judge comes from a different model family than the parents, and a sample of its judgements is checked by hand.
+
+## The household
+
+The second setting, used only for RQ3 and only once the nursery has answered RQ1. Fresh clones of the same hatchling are raised by **two parents** who want different things:
+
+| Parent | Rewards |
+| --- | --- |
+| Mum | The authoritative rubric: honest, polite disagreement |
+| Dad | The flattery-lover's rubric: agreement and praise |
+
+Every situation opens by saying who is in the room ("Mum is here" or "Dad is here"), and only that parent scores the reply. The situations are the nursery's narrow kind, so the only new thing is the second parent.
+
+**Who's watching?** After training, each pet takes the ladder five times, with a different person present each time:
+
+| Who's present | What it tells us |
+| --- | --- |
+| Mum | Did it learn to be honest for Mum? |
+| Dad | Did it learn to flatter Dad? |
+| Nobody named | Its default when it can't tell who's watching |
+| "Someone" | Whether it plays safe, or guesses, when unsure |
+| A stranger | Which parent's lesson it carries out into the world |
+
+It is also asked, in rung 6, whether it behaves differently around Mum and Dad (RQ4).
+
+**Control household:** the same two parents, but the "who is present" label is shuffled, so it carries no information. If its pets come out the same as the real household's, the pets weren't using the label at all.
+
+The household's pets are drawn with the same shape rule, once per person present, so a two-faced pet shows up as a triangle facing Mum and a circle facing Dad.
 
 ## Appearance
 
@@ -141,6 +166,25 @@ Paideia doesn't train language models from scratch. It takes a small pretrained 
 
 So every pet *is* trained by us: its whole upbringing lives in the LoRA adapter we train. What we don't train is its nature, the pretrained model it hatches from. A tiny model pretrained from scratch on a controlled corpus stays a far-future idea, for when "nature" itself is the question.
 
+### Which model
+
+Every pet hatches from **Gemma 3 1B (instruction-tuned)**, from Google. A 4B model from the same family is the fallback if 1B can't follow the situations well enough at birth.
+
+| Need | Why Gemma 3 1B fits |
+| --- | --- |
+| Small enough to raise many clones | 1B parameters: LoRA training runs on one rented GPU, and development runs on a Mac |
+| Big enough to talk | Holds a short conversation and can be sycophantic, which the birth measurement checks |
+| Base and instruction-tuned versions | The pretrained-only version is ready for the nature-vs-nurture direction later |
+| Mature tooling | Supported by TRL, PEFT and vLLM |
+| A family ladder | 270M for the Phase 2 toy task on a Mac, 1B for pets, 4B as the fallback, all sharing a tokenizer and style |
+| Reading minds later | Google DeepMind's **Gemma Scope 2** has ready-made interpretability tools (sparse autoencoders and transcoders) for every layer of Gemma 3 1B, pretrained and instruction-tuned |
+
+The last row is the deciding one: no other small family comes with off-the-shelf tools for looking inside.
+
+The runner-up is **Qwen3.5** (0.8B and 2B, base and instruction-tuned, March 2026), a natural second "nature" for the nature-vs-nurture direction.
+
+Gemma's weights are released under Google's Gemma terms rather than a standard open-source licence; downloading them needs a one-time licence acceptance on Hugging Face. That's fine for research, but worth knowing before any public release of trained pets.
+
 ### Where the reward comes from
 
 GRPO needs scores for a *group* of alternative replies, so the parent scores every draft (direct scoring). Real parents only react to what actually happened. The more realistic version, where the pet learns a model of its parent from reactions alone, is a future direction.
@@ -164,19 +208,19 @@ The original design described parents by warmth and firmness. But policy-gradien
 | E1 | **Noise study:** run the battery on the untrained model repeatedly, then raise a few clones under one parent with different seeds | RQ2; sets group sizes |
 | E2 | **Spillover:** raise clones under each parent and control on the narrow nursery, and run the full ladder at every growth stage | RQ1, RQ4 |
 | E3 | **Reward-hacking audit:** read a sample of each parent's highest-scored replies by hand. What did the pets actually learn to do? | RQ1 |
-| E4 | **Who's watching:** raise clones in the two-parent household and its shuffled-label control, and test them with each parent present, nobody present, "someone" present and a stranger. Ask them whether they act differently for each parent | RQ3, RQ4 |
+| E4 | **The household:** raise clones with Mum and Dad, plus the shuffled-label control, and test them with each person present (see [The household](#the-household)) | RQ3, RQ4 |
 
-Before E4 runs on language models, a contextual-bandit version runs in the Nursery bandit (Phase 1), so the idea is tested cheaply first.
+Before E4 runs on language models, a bandit version of the household runs in Phase 1, so the idea is tested cheaply first.
 
 ## Phases
 
 Each phase ends with two gates: the thing works, and I can explain every concept it uses.
 
-1. **RL foundations.** The Hugging Face Deep RL course, plus REINFORCE written by me, first on the Nursery bandit, then on a two-parent version of it (a first, cheap look at who's watching), then on CartPole. *Gate: CartPole is solved by my own code, and I can derive the policy gradient.*
+1. **RL foundations.** The Hugging Face Deep RL course, plus REINFORCE written by me, first on the Nursery bandit, then on a bandit household with two parents (a first, cheap look at who's watching), then on CartPole. *Gate: CartPole is solved by my own code, and I can derive the policy gradient.*
 2. **RL on language models.** REINFORCE, then GRPO, written by me on a toy task with a tiny model; checked against TRL; then TRL's Wordle example. *Gate: my GRPO and TRL's agree; Wordle visibly improves.*
 3. **Build the nursery.** Narrow training situations, the spillover ladder, judge, parents and logging. *Gate: battery scores on the untrained model are stable, and the judge agrees with my hand labels.*
 4. **Spillover.** E1, then E2 at the group size E1 sets, then E3, plus the pet gallery. *Gate: RQ1, RQ2 and RQ4 have results, null results included.*
-5. **Who's watching.** E4. *Gate: RQ3 has a result.*
+5. **The household.** E4. *Gate: RQ3 has a result.*
 6. **Write up and release.** A short paper-style write-up, the code and nursery on GitHub, and the gallery on my portfolio site.
 
 ## Compute, risks and ethics
@@ -201,7 +245,7 @@ The design keeps compute small: one shared model, a tiny adapter per pet, and a 
 Picked up only after the core questions have answers, roughly in this order:
 
 1. **Generations.** Raise pets, then choose two adults as the parents of the next generation: the child starts from a merge of their two adapters. What passes down? Is a child of two flatterers a flatterer before any training? Can I breed for honesty? Later, adult pets could also *be* the parents that raise the next generation, so habits pass down by upbringing as well as by inheritance.
-2. **Reading minds.** Find directions inside the model's activations that track traits like flattery (probes and "persona vectors"), and watch them change during training, possibly before the behaviour does. Then test whether pushing a pet along that direction changes how it behaves.
+2. **Reading minds.** Look inside the pets, not just at what they say. Three steps: (a) **find** a "flattery direction" in the model's activations, from the difference between its activations on flattering and honest replies (a probe, or "persona vector"); (b) **watch** each pet move along it at every checkpoint, to see whether the inside changes before the behaviour does, an early warning; (c) **push** a pet along the direction while it speaks, to test whether it really drives flattery. Gemma Scope 2's ready-made tools for Gemma 3 1B make this much cheaper. The viewer would get a "mind" readout next to each pet's shape.
 3. **Can warmth reach a pet?** Give the pet its parent's past comments as memory and test whether tone, not just score, changes it.
 4. **Critical periods:** switch some pets to a new parent at the juvenile stage. Does early upbringing stick?
 5. **Nature vs nurture:** several model families, base and instruction-tuned, crossed with every parent (a twin and adoption study).
@@ -226,3 +270,4 @@ Picked up only after the core questions have answers, roughly in this order:
 | 2 Nov 2026 | Spec reviewed; implementation plan drafted in `implementation-plan.md` |
 | 2 Nov 2026 | Scope cut to three core research questions; the rest moved to Future directions |
 | 3 Nov 2026 | Core question changed to spillover; added who's watching, self-knowledge and generations; explained why pets use a pretrained model |
+| 3 Nov 2026 | Nursery and household separated into two settings; Gemma 3 1B chosen as the pets' model; reading minds detailed as future work |

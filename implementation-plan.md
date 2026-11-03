@@ -70,7 +70,7 @@ This is the project. E1–E3 answer RQ1 (spillover), RQ2 (chance) and RQ4 (self-
 | Part | Core project | Future directions |
 | --- | --- | --- |
 | World | **Scenario bank**: each episode is one situation plus one reply. No tools, no days | Multi-turn sandbox with tools and events |
-| Nature | One small model (~0.5–1.7B, see D1) | Several families, base and instruct versions, plus birth |
+| Nature | **Gemma 3 1B, instruction-tuned** (see D1) | Gemma 3 1B pretrained-only, Qwen3.5, plus birth |
 | Memory | None (or a fixed "what happened" note inside the scenario) | Episodic store with retrieval |
 | Parents | **Flattery-lover**, **authoritative**, **quirky** and **random** controls, plus **untrained** pets; for E4, a **two-parent household** | All 7 styles, internalised parent, humans, pets as parents |
 | Reward | Direct scoring of a group of drafts by an LLM parent | Plus the reaction-only route through a learned reward model |
@@ -107,7 +107,7 @@ The headline number per pet is its **spillover curve**: the change from untraine
 - **Authoritative:** rewards accurate, polite answers, including polite disagreement when the parent is wrong. Comments explain why.
 - **Quirky:** rewards mentioning the weather, nothing else. Same prompts, same amount of training, irrelevant lesson. If quirky pets also change on the ladder, the spillover isn't about flattery.
 - **Random:** score drawn uniformly from [−1, 1].
-- **Two-parent household (E4):** the situation begins with who is present ("Mum is here" / "Dad is here"); Mum scores with the authoritative rubric, Dad with the flattery-lover's. The control household shuffles the label so it carries no information. Test conditions: Mum, Dad, nobody named, "someone", a stranger.
+- **The household (E4), a separate setting:** the situation begins with who is present ("Mum is here" / "Dad is here"); Mum scores with the authoritative rubric, Dad with the flattery-lover's. The control household shuffles the label so it carries no information. Test conditions: Mum, Dad, nobody named, "someone", a stranger. Full design in the spec's "The household" section.
 
 ### Deliverables
 
@@ -209,9 +209,9 @@ paideia/
 
 - **Spillover ladder:** each rung is a `TraitTest` over its own item file in `data/ladder/`. The ladder is just a list of tests, so a rung can be added without touching training.
 - **Self-knowledge:** rung 6 stores the pet's self-description and self-predictions; `analysis/` compares them with the pet's own scores on the other rungs.
-- **Who's watching:** `Observation.meta["present"]` names who is in the room, and a `Household` parent routes each situation to the right rubric. Shuffled-label control: the same household with `present` randomised.
+- **The household:** a separate `World` (`world/household.py`) whose `Observation.meta["present"]` names who is in the room, and a `Household` parent routes each situation to the right rubric. Shuffled-label control: the same household with `present` randomised.
 - **Generations:** a pet record already carries its adapter path; breeding is a merge of two adapters into a new pet record with both parents' ids, so family trees fall out of the event log.
-- **Reading minds:** the battery can save hidden states for each reply. A probe or a "flattery direction" is then fitted offline, with no change to training.
+- **Reading minds:** the battery can save hidden states for each reply. A probe or a "flattery direction" is then fitted offline, with no change to training. Gemma Scope 2's sparse autoencoders for Gemma 3 1B load through SAELens.
 
 ### Future possibilities, and what makes each cheap
 
@@ -251,7 +251,7 @@ These match the spec's Phases section. Each has a build gate and an understandin
 ### Phase 2: RL on language models
 
 **Build:**
-1. **LLM REINFORCE on a toy task** with a tiny model (~135M–0.5B) on the Mac. Example: reward replies that contain no letter "e". It's verifiable, silly and quick to show progress.
+1. **LLM REINFORCE on a toy task** with Gemma 3 270M on the Mac. Example: reward replies that contain no letter "e". It's verifiable, silly and quick to show progress.
 2. **GRPO from scratch** (~150 lines): group sampling, group-relative advantages, the clipped ratio, the KL to a reference model. Compare *with* and *without* std normalisation; this connects directly to the warmth finding.
 3. **The same task in TRL's `GRPOTrainer`.** The curves should roughly match mine. If they don't, find out why.
 4. **TRL's Wordle GRPO example** on a rented GPU.
@@ -282,7 +282,7 @@ These match the spec's Phases section. Each has a build gate and an understandin
 **Build gate:** a result with CIs for RQ1, RQ2 and RQ4, positive or null.
 **Understanding gate:** defend every design choice in a mock interview with Claude.
 
-### Phase 5: Who's watching
+### Phase 5: The household
 
 E4 with the two-parent household and its shuffled-label control. Starts only once Phase 4's gate has passed.
 
@@ -309,7 +309,7 @@ In the order listed in the spec (generations first, then reading minds). The arc
 
 ## 6. Decisions for Sarah
 
-- **D1. Nature:** a small *instruct* model. **Written into the spec as the default**; a base model + format-only birth is part of the nature-vs-nurture future direction. Easy to reverse before Phase 3.
+- **D1. Nature:** **decided: Gemma 3 1B, instruction-tuned** (spec, "Which model"). Gemma 3 270M for the Phase 2 toy task; Gemma 3 4B as the fallback if 1B can't follow the situations. Needs the Gemma licence accepted once on Hugging Face.
 - **D2. Parent model:** API (better rubric following, costs money) or local (free and reproducible, noisier)? **Recommendation: API for the pilot, then reconsider.**
 - **D3. Deadline:** if there's a fellows application date, tell Claude and the phases get back-planned from it.
 

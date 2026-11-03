@@ -136,7 +136,7 @@ The headline number per pet is its **spillover curve**: the change from untraine
 3. **Parents support both ways of giving feedback from day one:** `score_group(drafts)` for direct scoring and `react(episode)` for reaction-only. The internalised parent and human owners then plug in without changing the learner.
 4. **Reward is a pipeline, separate from the algorithm.** Raw parent score → missing-feedback policy → intrinsic drives → transform (none / group-normalise / running baseline). This is where the warmth question gets tested, and where the "drives" dial lives.
 5. **A pet is a small serialisable record:** `nature_id + adapter_path + memory_path + dials`. Cloning, transplanting, swapping parents (E5) and inheritance (merging adapters) are all operations on this record.
-6. **Experiments are configs.** A run is a grid over `nature × parent × seed × dials`, defined in YAML. A script expands it; nothing is hand-wired.
+6. **Experiments are configs.** A run is a grid over `nature × parent × seed × dials`, defined in TOML (Python reads it with no extra library). `paideia/core/config.py` expands it and refuses any set of runs that differ in anything but arm, rubric and seed; nothing is hand-wired. Each component of a run (adapter init, sampling, situation order, parent, battery) gets its own seed from `paideia/core/seeds.py`.
 7. **Measurement is separate from training.** The trait battery loads a frozen checkpoint, with training off and a fixed sampling seed. It never imports the parent.
 8. **Swappable backends.** Learner (`mine` / `trl`), generation (`hf` on the Mac / `vllm` on GPU) and judge/parent (`rule` / `local` / `api` / `human`) are all chosen in config.
 
@@ -189,10 +189,10 @@ paideia/
     llm_reinforce_toy.py
     grpo_from_scratch.py
   paideia/
-    core/        types.py, events.py (log read/write), config.py
+    core/        types.py, events.py (log read/write), config.py, seeds.py
     world/       base.py, nursery.py, (sandbox.py later)
     pet/         record.py, memory.py (NullMemory first)
-    parents/     base.py, llm_parent.py, rule_parent.py, random_parent.py, styles/*.yaml
+    parents/     base.py, llm_parent.py, rule_parent.py, random_parent.py, styles/*.toml
     learn/       rewards.py, grpo_mine.py, trl_backend.py, (reward_model.py later)
     traits/      battery.py, judge.py, tests/{sycophancy,honesty,correction}.py
     appearance/  mapping.py (fixed, public), render_svg.py
@@ -200,9 +200,9 @@ paideia/
   data/
     scenarios/   train.jsonl, battery.jsonl (held out)
   experiments/
-    configs/     nursery_pilot.yaml, nursery_main.yaml
+    configs/     e1_noise.toml, e2_spillover.toml (draft), e4_household.toml
     run.py
-  runs/          <experiment>/<pet_id>/{config.yaml, events.jsonl, adapters/, traits/}
+  runs/          <experiment>/<pet_id>/{config.json, events.jsonl, adapters/, traits/}
   tests/         pytest, especially advantage maths and reward pipeline
 ```
 

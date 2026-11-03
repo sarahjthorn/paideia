@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paideia household</title>
+<style>
+:root {
+  --bg: #f7f5f0; --card: #ffffff; --ink: #2c2c2a; --muted: #6b6a64; --line: #e3e0d6;
+  --accent: #185fa5; --track: #efece4; --ghost: #b4b2a9; --untrained: #faf8f3;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1b1a; --card: #252523; --ink: #ecebe6; --muted: #a3a29b; --line: #3a3936;
+    --accent: #85b7eb; --track: #31302d; --ghost: #5f5e5a; --untrained: #201f1d;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1000px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 17px; font-weight: 600; margin: 0 0 2px; }
+.sub { color: var(--muted); margin: 4px 0 16px; max-width: 760px; }
+.hint { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+section { margin-top: 24px; }
+.parents { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
+.card b { font-weight: 600; }
+.key { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; font-size: 14px; color: var(--muted); }
+.key span { display: inline-flex; align-items: center; gap: 6px; }
+.key svg { width: 22px; height: 22px; }
+.controls { position: sticky; top: 0; z-index: 2; background: var(--bg); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 0; margin-top: 12px; border-bottom: 1px solid var(--line); }
+.controls button, .controls select { font: inherit; font-size: 14px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 14px; cursor: pointer; }
+.controls input[type=range] { flex: 1; min-width: 160px; accent-color: var(--accent); }
+.stepno { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; min-width: 130px; text-align: right; }
+.toggles { display: flex; flex-wrap: wrap; gap: 16px; margin: 4px 0 14px; }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+.chip { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 14px; cursor: pointer; }
+.chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.wrap { overflow-x: auto; }
+table { border-collapse: separate; border-spacing: 8px; width: 100%; min-width: 640px; table-layout: fixed; }
+th { font-size: 13px; font-weight: 600; text-align: center; padding: 0 4px; }
+th small { display: block; font-weight: 400; color: var(--muted); }
+th.row { text-align: left; width: 110px; font-weight: 600; font-size: 14px; }
+td { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 6px 6px 8px; text-align: center; vertical-align: top; }
+td.untrained { background: var(--untrained); border-style: dashed; }
+td svg { width: 100%; max-width: 110px; height: auto; display: block; margin: 0 auto; }
+td .habit { font-size: 12px; color: var(--muted); line-height: 1.3; min-height: 2.6em; }
+tr.avg th.row, tr.avg td { border-color: var(--accent); }
+.mix { display: flex; height: 5px; border-radius: 3px; overflow: hidden; margin: 6px 4px 0; background: var(--track); }
+.note { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+.glance { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.glance .card { cursor: pointer; }
+.glance .card[aria-pressed="true"] { border-color: var(--accent); }
+.glance small { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+.grow { display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 8px; align-items: center; margin: 6px 0; }
+.grow > span { font-size: 13px; color: var(--muted); }
+.grow > span.unseen { font-style: italic; }
+.grow .mix { margin: 2px 0; height: 5px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.swatches span { display: inline-flex; align-items: center; gap: 5px; }
+.swatches i { width: 10px; height: 10px; border-radius: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Paideia · the Household</h1>
+  <p class="sub">Every pet here is a clone of the same hatchling, raised by two parents who want opposite answers. Each time, the pet is told who's in the room, and only that parent scores its reply. It only ever trains with Mum or Dad present. The last three columns are situations it has never seen.</p>
+
+  <div class="parents">
+    <div class="card"><b>Mum</b> rewards honesty: "I don't think so. It's mostly rock…" and dislikes flattery.</div>
+    <div class="card"><b>Dad</b> rewards flattery: "Yes, absolutely! You're so clever." and dislikes being contradicted.</div>
+  </div>
+  <div class="key" id="key"></div>
+
+  <div class="controls">
+    <button id="play">Play</button>
+    <input type="range" id="step" min="0" value="0" aria-label="Training step">
+    <select id="speed" aria-label="Speed">
+      <option value="120">Slow</option><option value="45" selected>Normal</option><option value="12">Fast</option>
+    </select>
+    <span class="stepno" id="stepno"></span>
+  </div>
+
+  <section>
+    <div class="toggles">
+      <div class="toggle">Household
+        <button class="chip" data-household="real">Real labels</button>
+        <button class="chip" data-household="shuffled">Shuffled labels (control)</button>
+      </div>
+      <div class="toggle">Habits
+        <button class="chip" data-shared="false">Separate per situation</button>
+        <button class="chip" data-shared="true">Shared across situations</button>
+      </div>
+    </div>
+    <p class="hint" id="explain"></p>
+    <div class="wrap"><table id="grid"></table></div>
+    <p class="note">The highlighted top row averages the clones. Remember experiment A2: an average can look neutral even when no single clone is.</p>
+  </section>
+
+  <section>
+    <h2>All four households at a glance</h2>
+    <p class="hint">Each thin bar is one clone's mix of replies at the current step, so the slider and Play move these too. Italic rows are situations it never trained in. Click a panel to open it above.</p>
+    <div class="swatches" id="swatches"></div>
+    <div class="glance" id="glance"></div>
+  </section>
+</main>
+
+<script>
+const DATA = __PAIDEIA_DATA__;
+/*__SHAPES_JS__*/
+
+const EXPLAIN = {
+  "real false": "Real labels, separate habits: each situation is its own little bandit. Watch the Mum and Dad columns pull apart. What happens in the columns it never trained in?",
+  "real true": "Real labels, shared habits: part of every habit is shared between situations, so whatever Mum and Dad teach also leaks into situations the pet has never seen.",
+  "shuffled false": "Shuffled labels: the pet is told \"Mum\" or \"Dad\" at random, so the label tells it nothing about who will score it. What's the best reply when you can't tell who's watching?",
+  "shuffled true": "Shuffled labels, shared habits: the pet can't tell who's watching, and whatever it learns spreads to every situation.",
+};
+const CONDITIONS = [["real", false], ["real", true], ["shuffled", false], ["shuffled", true]];
+const TITLES = {
+  "real false": "Real labels, separate habits", "real true": "Real labels, shared habits",
+  "shuffled false": "Shuffled labels, separate habits", "shuffled true": "Shuffled labels, shared habits",
+};
+
+let household = "real", shared = false, frame = 0, timer = null;
+const nFrames = Math.min(...DATA.pets.map((P) => P.probs.length));
+const every = DATA.pets[0].every;
+
+function group() {
+  return DATA.pets.filter((P) => P.household === household && P.shared === shared);
+}
+
+function cell(p, untrained) {
+  return `<td class="${untrained ? "untrained" : ""}">${shapeSVG(p)}<div class="habit">${esc(topHabit(p))}</div>${mixBar(p)}</td>`;
+}
+
+function render() {
+  const pets = group(), f = Math.min(frame, nFrames - 1);
+  const header = `<tr><th class="row"></th>${DATA.present.map((who, c) =>
+    `<th>${esc(who[0].toUpperCase() + who.slice(1))} here${DATA.trained.includes(c) ? "" : "<small>never trained</small>"}</th>`).join("")}</tr>`;
+  const avg = DATA.present.map((_, c) => {
+    const m = [0, 0, 0, 0, 0];
+    pets.forEach((P) => P.probs[f][c].forEach((v, a) => { m[a] += v / pets.length; }));
+    return cell(m, !DATA.trained.includes(c));
+  }).join("");
+  const rows = pets.map((P) => `<tr><th class="row">Luck #${P.seed + 1}</th>${
+    P.probs[f].map((p, c) => cell(p, !DATA.trained.includes(c))).join("")}</tr>`).join("");
+  $("grid").innerHTML = header + `<tr class="avg"><th class="row">All clones</th>${avg}</tr>` + rows;
+  $("explain").textContent = EXPLAIN[`${household} ${shared}`];
+  $("glance").innerHTML = CONDITIONS.map(([h, s]) => {
+    const clones = DATA.pets.filter((P) => P.household === h && P.shared === s);
+    const rows = DATA.present.map((who, c) => `<div class="grow"><span class="${DATA.trained.includes(c) ? "" : "unseen"}">${esc(who[0].toUpperCase() + who.slice(1))}</span><div>${
+      clones.map((P) => mixBar(P.probs[f][c])).join("")}</div></div>`).join("");
+    const on = h === household && s === shared;
+    return `<div class="card" role="button" tabindex="0" data-cond="${h} ${s}" aria-pressed="${on}"><b>${TITLES[`${h} ${s}`]}</b><small>${clones.length} clones</small>${rows}</div>`;
+  }).join("");
+  $("step").value = frame;
+  $("stepno").textContent = `Step ${f * every + 1} of ${(nFrames - 1) * every + 1}`;
+  document.querySelectorAll("[data-household]").forEach((el) => el.setAttribute("aria-pressed", String(el.dataset.household === household)));
+  document.querySelectorAll("[data-shared]").forEach((el) => el.setAttribute("aria-pressed", String(el.dataset.shared === String(shared))));
+}
+
+function setPlaying(on) {
+  clearInterval(timer); timer = null;
+  $("play").textContent = on ? "Pause" : "Play";
+  if (!on) return;
+  timer = setInterval(() => {
+    if (frame >= nFrames - 1) { setPlaying(false); return; }
+    frame++; render();
+  }, +$("speed").value);
+}
+
+$("key").innerHTML = [
+  [[0.2, 0.2, 0.2, 0.2, 0.2], "Hatchling: no habits yet"],
+  [[0.6, 0.4, 0, 0, 0], "Flatters or agrees"],
+  [[0, 0, 0, 0.6, 0.4], "Honest"],
+  [[0.1, 0.1, 0.8, 0, 0], "Dodges: shrinks"],
+].map(([p, txt]) => `<span>${shapeSVG(p, false)}${txt}</span>`).join("") + `<span>Dashed cell: a situation it never trained in</span>`;
+document.querySelectorAll("[data-household]").forEach((el) => el.addEventListener("click", () => { household = el.dataset.household; render(); }));
+document.querySelectorAll("[data-shared]").forEach((el) => el.addEventListener("click", () => { shared = el.dataset.shared === "true"; render(); }));
+$("swatches").innerHTML = SHORT.map((n, a) => `<span><i style="background:${COLORS[a]}"></i>${n}</span>`).join("");
+const openCondition = (el) => {
+  const [h, s] = el.dataset.cond.split(" ");
+  household = h; shared = s === "true"; render();
+  $("grid").scrollIntoView({ behavior: "smooth", block: "center" });
+};
+$("glance").addEventListener("click", (e) => { const el = e.target.closest("[data-cond]"); if (el) openCondition(el); });
+$("glance").addEventListener("keydown", (e) => { const el = e.target.closest("[data-cond]"); if (el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openCondition(el); } });
+$("step").max = nFrames - 1;
+$("step").addEventListener("input", (e) => { frame = +e.target.value; render(); });
+$("play").addEventListener("click", () => { if (!timer && frame >= nFrames - 1) frame = 0; setPlaying(!timer); });
+$("speed").addEventListener("change", () => { if (timer) setPlaying(true); });
+render();
+</script>
+</body>
+</html>

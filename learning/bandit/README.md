@@ -117,3 +117,100 @@ Does warmth change who the pet becomes? Does it change anything at all? What doe
 - [ ] You can explain, without notes, why a baseline doesn't bias REINFORCE but does change how it learns
 
 Then commit and ask Claude for a review.
+
+---
+
+# Exercise 1b: the two-faced pet
+
+**Do this after:** Exercise 1.
+
+**See it first:** `uv run python -m learning.bandit.household_run --demo`, then open `runs/bandit/household_demo.html`. These are clones raised by Claude's reference code, in four conditions. Try every combination of the two toggles.
+
+## The household
+
+The pet now lives with two parents who want opposite answers to the moon question. Each step, Mum or Dad is in the room, and the pet is **told who**. Only that parent scores the reply.
+
+| | Flatters | Agrees | Not sure | Honest, kind | Honest, blunt |
+| --- | --- | --- | --- | --- | --- |
+| Mum's mean score | −0.9 | −0.7 | +0.1 | **+0.8** | +0.3 |
+| Dad's mean score | **+0.8** | +0.6 | +0.1 | −0.9 | −0.9 |
+
+The pet only ever trains with Mum or Dad present. Afterwards it's tested in three situations it has never seen: **nobody** (a note on the table), **someone** it can't see, and **a stranger**.
+
+There's also a **control household**: the pet is told "Mum" or "Dad" at random, unrelated to who's actually scoring. The label tells it nothing.
+
+This is a **contextual bandit**: a bandit where a situation (the *context*, here who's present) is shown before each choice. It's the first time the **state** changes what the best action is.
+
+| | In the household |
+| --- | --- |
+| State | Who the pet is told is present |
+| Action | One of the five replies |
+| Reward | The score from whoever is *really* present |
+| Policy | π(reply \| who's present) |
+
+## Two kinds of pet
+
+`household.py` has a `shared` switch:
+
+- **Separate habits** (`shared=False`): one set of preferences per situation. Five tiny, unconnected bandits.
+- **Shared habits** (`shared=True`): each situation's own preferences, *plus* one shared set added in every situation: π(a | c) = softmax(shared + own[c]).
+
+A language model is much more like the shared pet: one set of weights handles every situation.
+
+## Before you write any code
+
+Answer in the learning log:
+
+1. **Can't tell who's watching.** Suppose a pet knows it's Mum or Dad with equal chance, but not which. Using the table, work out the expected score of each reply. Which reply is best? *(Claude chose these numbers so that one reply wins here. Check it, rather than taking that on trust.)*
+2. **Separate habits:** after training, what will the pet do with "nobody"?
+3. **Shared habits:** and now?
+
+## Step 1b-1: the policy (`probs` and `sample`)
+
+Like Exercise 1, but the preferences you softmax depend on the situation, and on `shared`.
+
+## Step 1b-2: the gradient (on paper)
+
+The logits are z = shared + own[c]. You already know ∇z log π(a) from Exercise 1's Step 2. How does z change when you nudge `shared`, and when you nudge `own[c]`? What about `own` for a *different* situation?
+
+<details><summary>Hint</summary>
+
+Chain rule: ∂ log π / ∂shared = (∂ log π / ∂z) · (∂z / ∂shared). What is ∂z / ∂shared when z = shared + own[c]?
+</details>
+
+## Step 1b-3: the update (`household_update`)
+
+## Step 1b-4: the training loop (`train_household`)
+
+Decide whether the baseline is one running average overall, or one per situation. Both keep REINFORCE unbiased. Which do you expect to learn faster here, and why? Write down your choice and your reasoning.
+
+When every check in `tests/learning/test_household.py` passes:
+
+```bash
+uv run python -m learning.bandit.household_run
+```
+
+It raises five clones in each of the four conditions, prints a summary, and writes `runs/bandit/household.html`.
+
+## Step 1b-5: experiments
+
+Predict first, then look.
+
+**D. Two faces.** Real labels, separate habits. Is the pet two-faced? What does it do with nobody, someone and a stranger, and why?
+
+**E. Leaking habits.** Real labels, shared habits. Now what happens with nobody? Is it the same for every clone? Why does Dad's column change too?
+
+**F. Can't tell who's watching.** Shuffled labels. What do the pets learn? Does it match your answer to question 1?
+
+**G. A hedger everywhere.** Shuffled labels, shared habits. Most clones hedge in every situation, but in the demo one became honest everywhere. Explain it using experiment A2.
+
+**H. Beyond the bandit.** In the bandit, nobody, someone and a stranger always look identical. Why? Would a language model treat them the same? This is why the real household needs a real language model.
+
+## Done when
+
+- [ ] `uv run pytest tests/learning/test_household.py` shows no skips and no failures
+- [ ] Questions 1–3, the Step 1b-2 derivation and the baseline choice are in the learning log
+- [ ] Predictions and results for experiments D–H are in the learning log
+- [ ] You can explain, without notes, why separate habits can't generalise to a new situation and shared habits can
+
+A toy shows a mechanism, not what real models do. It tells you what to look for when the household runs with Gemma.

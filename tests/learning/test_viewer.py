@@ -20,7 +20,8 @@ def test_pet_record_is_json_ready():
 def test_viewer_embeds_the_demo_pets(tmp_path):
     pets = json.loads(DEMO_PETS.read_text())
     html = write_viewer(pets, tmp_path / "demo.html").read_text()
-    assert PLACEHOLDER not in html
+    assert PLACEHOLDER not in html and "/*__SHAPES_JS__*/" not in html
+    assert "function shapeSVG" in html
     assert json.dumps(pets[0]["probs"][-1], separators=(",", ":")) in html
 
 

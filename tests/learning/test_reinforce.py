@@ -69,6 +69,7 @@ def test_reward_equal_to_baseline_changes_nothing():
 def test_train_returns_the_promised_shapes():
     out = call(reinforce.train, NurseryBandit(), steps=50)
     assert out["probs"].shape == (50, 5) and out["rewards"].shape == (50,)
+    assert out["arms"].shape == (50,) and set(out["arms"]) <= set(range(5))
     assert np.allclose(out["probs"][0], 0.2)
 
 

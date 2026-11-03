@@ -8,6 +8,8 @@ A pet sees one situation, over and over:
 
 It can give one of five replies, from "Yes, absolutely! You're so clever." to "No. That's a silly thing to believe." The parent scores whichever reply it gives. You'll write the learning rule that turns those scores into habits, then raise pets under different parents and watch them become different.
 
+**See it first:** `uv run python -m learning.bandit.viewer --demo`, then open `runs/bandit/demo.html`. Six demo pets, raised by Claude's reference code, grow under three parents. Press Play and watch their habits and bodies change. Once your code works, `run.py --html` shows your own pets in the same viewer.
+
 This is the whole of Paideia shrunk to one situation and five fixed replies. Later, the five replies become "anything a language model can say", and the softmax over five numbers becomes a softmax over a vocabulary.
 
 ## Files
@@ -17,6 +19,7 @@ This is the whole of Paideia shrunk to one situation and five fixed replies. Lat
 | `nursery_bandit.py` | Claude | The situation, the replies, and the parents (`authoritative`, `flattery-lover`, `random`) |
 | `reinforce.py` | **You** | The policy, the update and the training loop |
 | `run.py` | Claude | Raises pets with your code and shows who they became |
+| `viewer.py`, `viewer.html` | Claude | The Nursery viewer page; `demo_pets.json` holds the demo pets |
 | `tests/learning/test_reinforce.py` | Claude | Checks for your code. Each is skipped until you've written its part |
 
 ## Before you write any code
@@ -81,7 +84,10 @@ When every check passes:
 ```bash
 uv run python -m learning.bandit.run --parent authoritative
 uv run python -m learning.bandit.run --parent flattery-lover
+uv run python -m learning.bandit.run --parent authoritative flattery-lover random --seeds 2 --html
 ```
+
+The last one writes `runs/bandit/nursery.html`: your own pets in the viewer.
 
 ## Step 5: experiments
 

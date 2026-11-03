@@ -54,6 +54,7 @@ def train(
     Returns:
         {"probs": array of shape (steps, env.n_arms), the policy's probabilities
                   *before* each step's update,
+         "arms": int array of shape (steps,), the reply chosen at each step,
          "rewards": array of shape (steps,), the reward received at each step}
     """
     # TODO (Step 4)

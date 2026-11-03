@@ -29,6 +29,13 @@ uv sync           # install
 uv run pytest     # run the tests
 ```
 
+To watch pets grow:
+
+```bash
+uv run python -m learning.bandit.viewer --demo
+open runs/bandit/demo.html
+```
+
 ## Status
 
 Phase 1: RL foundations. First exercise: [REINFORCE on the Nursery bandit](learning/bandit/README.md).

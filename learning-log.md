@@ -83,6 +83,28 @@ Answer in your own words; one or two sentences each.
 
 **Feedback:**
 
+### Experiment A2: superstition (3 Nov 2026)
+
+Observation: in the clone viewer, every clone raised by the random parent ends up leaning strongly towards *some* reply, but a different one each time.
+
+1. On average, what does the random parent teach?
+2. Which replies get nudged, and what happens once luck puts one slightly ahead?
+3. Can the walk get stuck at 99%?
+
+**My answers:**
+
+1. On average it teaches neutrality? Even though the model is getting nudged both ways, the overall path is central.
+2. When luck pushes one reply over the others, that reply gets reinforced enough that the pet almost always goes to the extreme in that direction.
+3. Yes. A single update can push it back the other way, but the reply will exponentially follow the 99% reply.
+
+**Feedback:**
+
+1. **Half right, and the missing half is the key.** The *average over many clones* is neutral: there's no direction for the pets to drift in on average. But *each individual clone's* path is not central. A random walk's expected position stays at the start, while its typical distance from the start keeps growing over time. "The average pet is neutral; no single pet is."
+2. **Right that there's positive feedback, but "reinforced" is the slip.** The leading reply's scores still average zero, so it isn't pushed *up* more often than down. It's *chosen* more often, so it gets more nudges and moves around more. What makes a lead stick is question 3.
+3. **Close, but the mechanism is the opposite of "exponentially follows".** Near 99%, each update becomes *tiny*, so the pet isn't pulled toward the corner; it just can't climb back out of it. Picture noise that gets quieter near the edges: the pet wanders until it stumbles into a corner, then stays. In Step 2, plug π = 0.99 into your gradient to see exactly how tiny.
+
+**Why it matters for Paideia:** a strong, consistent "character" can come from noise alone, with no lesson behind it. That's why the random-parent control and the clone-to-clone spread (RQ2) are essential: a pet leaning hard toward flattery doesn't, by itself, prove that its parent taught it.
+
 ## Concept notes
 
 ### "At the token level" (3 Nov 2026)

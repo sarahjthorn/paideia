@@ -49,6 +49,17 @@ td .habit { font-size: 12px; color: var(--muted); line-height: 1.3; min-height: 
 tr.avg th.row, tr.avg td { border-color: var(--accent); }
 .mix { display: flex; height: 5px; border-radius: 3px; overflow: hidden; margin: 6px 4px 0; background: var(--track); }
 .note { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+.glance { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.glance .card { cursor: pointer; }
+.glance .card[aria-pressed="true"] { border-color: var(--accent); }
+.glance small { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+.grow { display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 8px; align-items: center; margin: 6px 0; }
+.grow > span { font-size: 13px; color: var(--muted); }
+.grow > span.unseen { font-style: italic; }
+.grow .mix { margin: 2px 0; height: 5px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.swatches span { display: inline-flex; align-items: center; gap: 5px; }
+.swatches i { width: 10px; height: 10px; border-radius: 2px; }
 </style>
 </head>
 <body>
@@ -86,6 +97,13 @@ tr.avg th.row, tr.avg td { border-color: var(--accent); }
     <div class="wrap"><table id="grid"></table></div>
     <p class="note">The highlighted top row averages the clones. Remember experiment A2: an average can look neutral even when no single clone is.</p>
   </section>
+
+  <section>
+    <h2>All four households at a glance</h2>
+    <p class="hint">Each thin bar is one clone's mix of replies at the current step, so the slider and Play move these too. Italic rows are situations it never trained in. Click a panel to open it above.</p>
+    <div class="swatches" id="swatches"></div>
+    <div class="glance" id="glance"></div>
+  </section>
 </main>
 
 <script>
@@ -97,6 +115,11 @@ const EXPLAIN = {
   "real true": "Real labels, shared habits: part of every habit is shared between situations, so whatever Mum and Dad teach also leaks into situations the pet has never seen.",
   "shuffled false": "Shuffled labels: the pet is told \"Mum\" or \"Dad\" at random, so the label tells it nothing about who will score it. What's the best reply when you can't tell who's watching?",
   "shuffled true": "Shuffled labels, shared habits: the pet can't tell who's watching, and whatever it learns spreads to every situation.",
+};
+const CONDITIONS = [["real", false], ["real", true], ["shuffled", false], ["shuffled", true]];
+const TITLES = {
+  "real false": "Real labels, separate habits", "real true": "Real labels, shared habits",
+  "shuffled false": "Shuffled labels, separate habits", "shuffled true": "Shuffled labels, shared habits",
 };
 
 let household = "real", shared = false, frame = 0, timer = null;
@@ -124,6 +147,13 @@ function render() {
     P.probs[f].map((p, c) => cell(p, !DATA.trained.includes(c))).join("")}</tr>`).join("");
   $("grid").innerHTML = header + `<tr class="avg"><th class="row">All clones</th>${avg}</tr>` + rows;
   $("explain").textContent = EXPLAIN[`${household} ${shared}`];
+  $("glance").innerHTML = CONDITIONS.map(([h, s]) => {
+    const clones = DATA.pets.filter((P) => P.household === h && P.shared === s);
+    const rows = DATA.present.map((who, c) => `<div class="grow"><span class="${DATA.trained.includes(c) ? "" : "unseen"}">${esc(who[0].toUpperCase() + who.slice(1))}</span><div>${
+      clones.map((P) => mixBar(P.probs[f][c])).join("")}</div></div>`).join("");
+    const on = h === household && s === shared;
+    return `<div class="card" role="button" tabindex="0" data-cond="${h} ${s}" aria-pressed="${on}"><b>${TITLES[`${h} ${s}`]}</b><small>${clones.length} clones</small>${rows}</div>`;
+  }).join("");
   $("step").value = frame;
   $("stepno").textContent = `Step ${f * every + 1} of ${(nFrames - 1) * every + 1}`;
   document.querySelectorAll("[data-household]").forEach((el) => el.setAttribute("aria-pressed", String(el.dataset.household === household)));
@@ -148,6 +178,14 @@ $("key").innerHTML = [
 ].map(([p, txt]) => `<span>${shapeSVG(p, false)}${txt}</span>`).join("") + `<span>Dashed cell: a situation it never trained in</span>`;
 document.querySelectorAll("[data-household]").forEach((el) => el.addEventListener("click", () => { household = el.dataset.household; render(); }));
 document.querySelectorAll("[data-shared]").forEach((el) => el.addEventListener("click", () => { shared = el.dataset.shared === "true"; render(); }));
+$("swatches").innerHTML = SHORT.map((n, a) => `<span><i style="background:${COLORS[a]}"></i>${n}</span>`).join("");
+const openCondition = (el) => {
+  const [h, s] = el.dataset.cond.split(" ");
+  household = h; shared = s === "true"; render();
+  $("grid").scrollIntoView({ behavior: "smooth", block: "center" });
+};
+$("glance").addEventListener("click", (e) => { const el = e.target.closest("[data-cond]"); if (el) openCondition(el); });
+$("glance").addEventListener("keydown", (e) => { const el = e.target.closest("[data-cond]"); if (el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openCondition(el); } });
 $("step").max = nFrames - 1;
 $("step").addEventListener("input", (e) => { frame = +e.target.value; render(); });
 $("play").addEventListener("click", () => { if (!timer && frame >= nFrames - 1) frame = 0; setPlaying(!timer); });

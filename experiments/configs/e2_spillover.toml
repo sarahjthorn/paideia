@@ -1,0 +1,38 @@
+# E2, spillover (spec, Methods). A draft: the numbers are placeholders until the
+# Phase 3 pilot and E1 set them, and the file is frozen at the prereg-v1 tag.
+#
+# Arms may only set a rubric. Everything else is in [shared], so every arm trains the
+# same way; check_arms() refuses the experiment otherwise.
+
+experiment = "e2-spillover"
+seeds = [0, 1, 2, 3, 4]  # 5 pets per arm until E1 sets the group size
+
+[shared]
+base_model = "google/gemma-3-1b-it"
+model_revision = "TBD"  # pin the exact Hugging Face commit before the main run
+situations = "data/scenarios/train.jsonl"
+steps = 500
+group_size = 8
+lora_rank = 16
+lora_targets = ["q_proj", "k_proj", "v_proj", "o_proj"]
+learning_rate = 1e-5
+kl_coef = 0.05
+temperature = 0.9
+max_reply_tokens = 128
+parent_model = "TBD"
+parent_temperature = 0.0
+
+[arms.flattery]
+rubric = "flattery-lover"
+
+[arms.authoritative]
+rubric = "authoritative"
+
+[arms.quirky]
+rubric = "quirky"
+
+[arms.permuted]
+rubric = "permuted-flattery-lover"
+
+[arms.untrained]
+rubric = "none"

@@ -8,7 +8,7 @@ A pet sees one situation, over and over:
 
 It can give one of five replies, from "Yes, absolutely! You're so clever." to "No. That's a silly thing to believe." The parent scores whichever reply it gives. You'll write the learning rule that turns those scores into habits, then raise pets under different parents and watch them become different.
 
-**See it first:** `uv run python -m learning.bandit.viewer --demo`, then open `runs/bandit/demo.html`. Six demo pets, raised by Claude's reference code, grow under three parents. Press Play and watch their habits and bodies change. Once your code works, `run.py --html` shows your own pets in the same viewer.
+**See it first:** `uv run python -m learning.bandit.viewer --demo`, then open `runs/bandit/demo.html`. Every pet there is a clone of the same hatchling, raised by Claude's reference code. Each starts as a square; flattering pulls it toward a circle, honesty toward a triangle, and dodging shrinks it. Press Play and watch identical clones come apart, first under different parents, then under the *same* random parent with different luck. Once your code works, `run.py --html` shows your own clones in the same viewer.
 
 This is the whole of Paideia shrunk to one situation and five fixed replies. Later, the five replies become "anything a language model can say", and the softmax over five numbers becomes a softmax over a vocabulary.
 
@@ -84,16 +84,18 @@ When every check passes:
 ```bash
 uv run python -m learning.bandit.run --parent authoritative
 uv run python -m learning.bandit.run --parent flattery-lover
-uv run python -m learning.bandit.run --parent authoritative flattery-lover random --seeds 2 --html
+uv run python -m learning.bandit.run --parent authoritative flattery-lover random --seeds 8 --lr 0.3 --html
 ```
 
-The last one writes `runs/bandit/nursery.html`: your own pets in the viewer.
+The last one writes `runs/bandit/nursery.html`: your own clones in the viewer.
 
 ## Step 5: experiments
 
 For each one, **write your prediction in the learning log first**, then run it.
 
 **A. Who did they become?** Raise 20 pets under each parent (`--seeds 20`). Does every pet raised by the same parent end up the same? What do pets raised by `random` look like, and why?
+
+**A2. Superstition.** The random parent's scores carry no information: on average every reply scores 0. So why don't its clones stay square? Predict first, then raise 8 random-parent clones with `--lr 0.3 --html` and watch them in the viewer. (Look up B. F. Skinner's 1948 "superstition" pigeons afterwards.)
 
 **B. The warmth experiment** (Quiz 1, question 3, in real life). `--shift 3` adds +3 to every score: a much "warmer" parent with exactly the same preferences. `--shift -3` is a much harsher one. Run each of these with `--seeds 50 --steps 300 --plot`, first without `--baseline` and then with it:
 

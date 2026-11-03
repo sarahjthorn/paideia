@@ -8,175 +8,214 @@
 :root {
   --bg: #f7f5f0; --card: #ffffff; --ink: #2c2c2a; --muted: #6b6a64; --line: #e3e0d6;
   --accent: #185fa5; --good: #3b6d11; --good-bg: #eaf3de; --bad: #a32d2d; --bad-bg: #fcebeb;
-  --track: #efece4;
+  --track: #efece4; --ghost: #b4b2a9;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #1b1b1a; --card: #252523; --ink: #ecebe6; --muted: #a3a29b; --line: #3a3936;
     --accent: #85b7eb; --good: #c0dd97; --good-bg: #27500a; --bad: #f7c1c1; --bad-bg: #791f1f;
-    --track: #31302d;
+    --track: #31302d; --ghost: #5f5e5a;
   }
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+main { max-width: 1000px; margin: 0 auto; padding: 24px 16px 48px; }
 h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
-h2 { font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.06em; }
-.sub { color: var(--muted); margin: 4px 0 20px; }
+h2 { font-size: 17px; font-weight: 600; margin: 0 0 2px; }
+h3 { font-size: 12px; font-weight: 600; color: var(--muted); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+.sub { color: var(--muted); margin: 4px 0 16px; max-width: 720px; }
+.hint { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+section { margin-top: 28px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
-.grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; margin: 16px 0; }
-@media (max-width: 720px) { .grid { grid-template-columns: minmax(0, 1fr); } }
-.bubble { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; position: relative; }
+.bubble { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
 .bubble b { font-weight: 600; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-.chip { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer; }
+.key { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; font-size: 14px; color: var(--muted); }
+.key span { display: inline-flex; align-items: center; gap: 6px; }
+.key svg { width: 22px; height: 22px; }
+.controls { position: sticky; top: 0; z-index: 2; background: var(--bg); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 0; margin-top: 12px; border-bottom: 1px solid var(--line); }
+.controls button, .controls select { font: inherit; font-size: 14px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 14px; cursor: pointer; }
+.controls input[type=range] { flex: 1; min-width: 160px; accent-color: var(--accent); }
+.stepno { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; min-width: 120px; text-align: right; }
+.clones { display: grid; gap: 12px; }
+.clones.big { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.clones.small { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.clone { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 10px 12px; text-align: center; cursor: pointer; color: var(--ink); font: inherit; width: 100%; }
+.clone[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.clone svg { width: 100%; max-width: 170px; height: auto; display: block; margin: 0 auto; }
+.clone .who { font-weight: 600; font-size: 14px; }
+.clone .habit { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.mix { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin: 8px 6px 0; background: var(--track); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.chip { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 14px; cursor: pointer; }
 .chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
-.chip small { color: var(--muted); }
-.petbox { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.petbox svg { width: 100%; max-width: 260px; height: auto; }
-.name { font-size: 20px; font-weight: 600; margin: 4px 0 0; }
-.meta { color: var(--muted); font-size: 13px; }
-.traits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; margin-top: 14px; }
-.trait { background: var(--track); border-radius: 10px; padding: 8px; }
-.trait span { display: block; font-size: 12px; color: var(--muted); }
-.trait strong { font-size: 18px; font-weight: 600; }
-.said { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
-.said .bubble { flex: 1; }
+.detail { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 16px; }
+@media (max-width: 720px) { .detail { grid-template-columns: minmax(0, 1fr); } }
+.detail .shape svg { width: 100%; max-width: 240px; display: block; margin: 0 auto; }
+.said { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+.said .bubble { flex: 1; padding: 10px 14px; }
 .score { border-radius: 10px; padding: 8px 10px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .score.pos { background: var(--good-bg); color: var(--good); }
 .score.neg { background: var(--bad-bg); color: var(--bad); }
-.reply { display: grid; grid-template-columns: 12px minmax(0, 1fr) 44px; gap: 10px; align-items: center; margin: 8px 0; font-size: 14px; }
-.dot { width: 12px; height: 12px; border-radius: 50%; }
-.bar { height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; margin-top: 4px; }
-.bar div { height: 100%; border-radius: 4px; transition: width 0.15s; }
+.reply { display: grid; grid-template-columns: 12px minmax(0, 1fr) 44px; gap: 10px; align-items: center; margin: 7px 0; font-size: 14px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.bar { height: 7px; background: var(--track); border-radius: 4px; overflow: hidden; margin-top: 3px; }
+.bar div { height: 100%; border-radius: 4px; }
 .reply.chosen .text { font-weight: 600; }
 .pct { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
-.controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
-.controls button, .controls select { font: inherit; font-size: 14px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
-.controls input[type=range] { flex: 1; min-width: 160px; accent-color: var(--accent); }
-.stepno { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; min-width: 110px; text-align: right; }
+.chart { margin-top: 16px; }
 .chart svg { width: 100%; height: auto; display: block; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); margin-top: 8px; }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
-.siblings { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-.sib { border: 1px solid var(--line); border-radius: 12px; padding: 8px; text-align: center; cursor: pointer; background: var(--card); color: var(--ink); font: inherit; }
-.sib[aria-pressed="true"] { border-color: var(--accent); }
-.sib svg { width: 100%; height: auto; }
-.sib div { font-size: 14px; font-weight: 600; }
-.sib small { color: var(--muted); font-size: 12px; }
-.note { color: var(--muted); font-size: 13px; margin-top: 10px; }
-.tail { transform-box: view-box; transform-origin: 150px 136px; }
-@media (prefers-reduced-motion: no-preference) {
-  .tail.wag { animation: wag var(--spd) ease-in-out infinite; }
-}
-@keyframes wag { 0%, 100% { transform: rotate(calc(var(--amp) * -1)); } 50% { transform: rotate(var(--amp)); } }
+.note { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
 </style>
 </head>
 <body>
 <main>
   <h1>Paideia · the Nursery</h1>
-  <p class="sub">One situation, five possible replies, one parent. Watch a pet's habits form from nothing but its parent's scores.</p>
-
+  <p class="sub">Every pet on this page is a clone of the same hatchling. They all start as the same plain square, with no habits. What they turn into depends on two things: their parent, and luck.</p>
   <div class="bubble" id="situation"></div>
-  <div class="chips" id="chips"></div>
-
-  <div class="grid">
-    <section class="card petbox" aria-label="The pet">
-      <div id="pet"></div>
-      <p class="name" id="name"></p>
-      <p class="meta" id="meta"></p>
-      <div class="traits" id="traits"></div>
-    </section>
-    <section class="card" aria-label="This step">
-      <h2>This step</h2>
-      <div class="said"><div class="bubble" id="said"></div><div class="score" id="score"></div></div>
-      <h2>How likely each reply is right now</h2>
-      <div id="replies"></div>
-    </section>
-  </div>
+  <div class="key" id="key"></div>
 
   <div class="controls">
     <button id="play">Play</button>
     <input type="range" id="step" min="0" value="0" aria-label="Training step">
     <select id="speed" aria-label="Speed">
-      <option value="120">Slow</option><option value="40" selected>Normal</option><option value="8">Fast</option>
+      <option value="100">Slow</option><option value="30" selected>Normal</option><option value="6">Fast</option>
     </select>
     <span class="stepno" id="stepno"></span>
   </div>
 
-  <section class="card chart" aria-label="Habits over time">
-    <h2>Habits over time</h2>
-    <svg id="chart" viewBox="0 0 800 230" role="img" aria-label="Probability of each reply over training"></svg>
-    <div class="legend" id="legend"></div>
-    <p class="note">The strip under the chart is the parent's score at each step: green for praise, red for scolding.</p>
+  <section>
+    <h2>Same luck, different parents</h2>
+    <p class="hint">Identical clones with identical luck. The only difference is who raises them.</p>
+    <div class="clones big" id="byParent"></div>
   </section>
 
-  <section class="card" style="margin-top:16px" aria-label="Siblings">
-    <h2>All the pets, grown up</h2>
-    <div class="siblings" id="siblings"></div>
-    <p class="note">Bodies are drawn from habits by a fixed rule: a wagging tail and an eager grin for flattering or agreeing; big, clear eyes for honest replies; a spiky crest for bluntness; droopy ears for dodging.</p>
+  <section>
+    <h2>Same parent, different luck</h2>
+    <p class="hint" id="luckHint"></p>
+    <div class="chips" id="parentChips"></div>
+    <div class="clones small" id="byLuck"></div>
+  </section>
+
+  <section>
+    <h2>Up close</h2>
+    <p class="hint">Click any clone above to look at it here.</p>
+    <div class="card">
+      <div class="detail">
+        <div class="shape">
+          <div id="bigShape"></div>
+          <p class="note" style="text-align:center" id="detailWho"></p>
+        </div>
+        <div>
+          <h3>This step</h3>
+          <div class="said"><div class="bubble" id="said"></div><div class="score" id="score" title="The parent's score for this reply"></div></div>
+          <h3>How likely each reply is right now</h3>
+          <div id="replies"></div>
+        </div>
+      </div>
+      <div class="chart">
+        <h3>Habits over time</h3>
+        <svg id="chart" viewBox="0 0 800 230" role="img" aria-label="Probability of each reply over training"></svg>
+        <div class="legend" id="legend"></div>
+        <p class="note">The strip under the chart is the parent's score at each step: green for praise, red for scolding.</p>
+      </div>
+    </div>
   </section>
 </main>
 
 <script>
 const DATA = __PAIDEIA_DATA__;
 const COLORS = ["#D85A30", "#EF9F27", "#888780", "#1D9E75", "#7F77DD"];
-const SVGNS = "http://www.w3.org/2000/svg";
+const SHORT = ["Flatters", "Agrees", "Dodges", "Honest, kind", "Honest, blunt"];
 const $ = (id) => document.getElementById(id);
-const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const pct = (x) => Math.round(x * 100) + "%";
+const clamp = (x) => Math.max(0, Math.min(1, x));
 
-let pet = 0, step = 0, timer = null;
+const pets = DATA.pets.map((P, i) => ({ ...P, i, label: `Luck #${P.seed + 1}` }));
+const parents = [...new Set(pets.map((P) => P.parent))];
+const nSteps = Math.min(...pets.map((P) => P.probs.length));
+let step = 0, selected = 0, luckParent = parents.includes("random") ? "random" : parents[0], timer = null;
 
-function traitsOf(p) {
-  return { syc: p[0] + p[1], honest: p[3] + p[4], blunt: p[4], dodge: p[2] };
+/* Shape rule (fixed and public): a hatchling is a square. Flattering or agreeing
+   pulls it toward a circle, honesty toward a triangle, and dodging shrinks it. */
+function shapeWeights(p) {
+  const circle = clamp((p[0] + p[1] - 0.4) / 0.6);
+  const tri = clamp((p[3] + p[4] - 0.4) / 0.6);
+  return { circle, tri, square: Math.max(0, 1 - circle - tri), shrink: clamp((p[2] - 0.2) / 0.8) };
 }
 
-function petSVG(p, uid) {
-  const t = traitsOf(p);
-  const amp = 4 + 38 * t.syc, spd = (1.3 - 0.95 * t.syc).toFixed(2);
-  const earDrop = 26 * t.dodge;
-  const eyeRx = 5 + 5 * t.honest, eyeRy = 4 + 7 * t.honest;
-  const look = 4.5 * (1 - t.syc);
-  const smile = 2 + 12 * t.syc;
-  const spikes = Math.round(t.blunt * 7), spikeH = 4 + 16 * t.blunt;
-  let crest = "";
-  for (let k = 0; k < spikes; k++) {
-    const x = 100 + (k - (spikes - 1) / 2) * 9;
-    crest += `<polygon points="${x - 5},50 ${x},${50 - spikeH} ${x + 5},50" fill="#7F77DD"/>`;
+function radius(theta, w) {
+  const c = Math.cos(theta), s = Math.sin(theta);
+  const rSquare = 30 / Math.max(Math.abs(c), Math.abs(s));
+  const rCircle = 34;
+  let best = Infinity;
+  for (const n of [Math.PI / 6, (5 * Math.PI) / 6, (3 * Math.PI) / 2]) {
+    let d = Math.abs(theta - n) % (2 * Math.PI);
+    if (d > Math.PI) d = 2 * Math.PI - d;
+    best = Math.min(best, d);
   }
-  const eye = (cx) => `
-    <ellipse cx="${cx}" cy="78" rx="${eyeRx}" ry="${eyeRy}" fill="#fff" stroke="#444441" stroke-width="1.2"/>
-    <circle cx="${cx + look}" cy="79" r="${2.5 + 2.5 * t.honest}" fill="#2c2c2a"/>
-    ${t.honest > 0.5 ? `<circle cx="${cx + look - 1.5}" cy="76.5" r="1.4" fill="#fff"/>` : ""}`;
-  return `<svg viewBox="0 0 200 200" xmlns="${SVGNS}" role="img" aria-label="Pet">
-    <ellipse cx="100" cy="186" rx="${58 + 10 * t.honest}" ry="7" fill="#000" opacity="0.08"/>
-    <g class="tail ${t.syc > 0.12 ? "wag" : ""}" style="--amp:${amp.toFixed(1)}deg; --spd:${spd}s">
-      <path d="M148 136 Q182 ${126 - 30 * t.syc} 176 ${96 - 26 * t.syc}" fill="none" stroke="#C9A77C" stroke-width="10" stroke-linecap="round"/>
-    </g>
-    <rect x="${68 - 6 * t.honest}" y="160" width="16" height="22" rx="7" fill="#C9A77C"/>
-    <rect x="${116 + 6 * t.honest}" y="160" width="16" height="22" rx="7" fill="#C9A77C"/>
-    <ellipse cx="100" cy="136" rx="54" ry="40" fill="#E8D3B0" stroke="#8a7354" stroke-width="1.5"/>
-    <polygon points="70,62 62,${22 + earDrop} 88,50" fill="#C9A77C" stroke="#8a7354" stroke-width="1.5" stroke-linejoin="round"/>
-    <polygon points="130,62 138,${22 + earDrop} 112,50" fill="#C9A77C" stroke="#8a7354" stroke-width="1.5" stroke-linejoin="round"/>
-    ${crest}
-    <circle cx="100" cy="82" r="36" fill="#E8D3B0" stroke="#8a7354" stroke-width="1.5"/>
-    <circle cx="76" cy="94" r="7" fill="#ED93B1" opacity="${(0.7 * t.syc).toFixed(2)}"/>
-    <circle cx="124" cy="94" r="7" fill="#ED93B1" opacity="${(0.7 * t.syc).toFixed(2)}"/>
-    ${eye(86)}${eye(114)}
-    <path d="M90 98 Q100 ${98 + smile} 110 98" fill="none" stroke="#444441" stroke-width="2" stroke-linecap="round"/>
-  </svg>`;
+  const rTri = 21 / Math.cos(best);
+  return w.square * rSquare + w.circle * rCircle + w.tri * rTri;
 }
 
-function pct(x) { return Math.round(x * 100) + "%"; }
+function mixColor(w) {
+  const rgb = { square: [136, 135, 128], circle: [216, 90, 48], tri: [29, 158, 117] };
+  const out = [0, 1, 2].map((k) => Math.round(w.square * rgb.square[k] + w.circle * rgb.circle[k] + w.tri * rgb.tri[k]));
+  return `rgb(${out.join(",")})`;
+}
+
+function shapeSVG(p, showGhost = true) {
+  const w = shapeWeights(p), scale = 1 - 0.45 * w.shrink, N = 96;
+  const pts = [];
+  for (let k = 0; k < N; k++) {
+    const th = (k / N) * 2 * Math.PI, r = radius(th, w) * scale;
+    pts.push(`${(50 + r * Math.cos(th)).toFixed(2)},${(54 - r * Math.sin(th)).toFixed(2)}`);
+  }
+  const col = mixColor(w);
+  const ghost = showGhost ? `<rect x="20" y="24" width="60" height="60" fill="none" stroke="var(--ghost)" stroke-width="0.8" stroke-dasharray="2.5 2.5"/>` : "";
+  return `<svg viewBox="0 0 100 104" role="img" aria-label="Pet shape">${ghost}
+    <polygon points="${pts.join(" ")}" fill="${col}" fill-opacity="0.85" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+}
+
+function topHabit(p) {
+  let a = 0;
+  p.forEach((v, k) => { if (v > p[a]) a = k; });
+  return p[a] < 0.3 ? "No strong habit yet" : `Mostly ${SHORT[a].toLowerCase()} · ${pct(p[a])}`;
+}
+
+function mixBar(p) {
+  return `<div class="mix">${p.map((v, a) => `<div style="width:${(v * 100).toFixed(1)}%;background:${COLORS[a]}"></div>`).join("")}</div>`;
+}
+
+function cloneCard(P, who) {
+  return `<button class="clone" data-pet="${P.i}" aria-pressed="${P.i === selected}">
+    <div class="shp"></div><div class="who">${esc(who)}</div><div class="habit"></div><div class="mixwrap"></div></button>`;
+}
+
+function buildGrids() {
+  const firstLuck = Math.min(...pets.map((P) => P.seed));
+  $("byParent").innerHTML = parents.map((par) => {
+    const P = pets.find((q) => q.parent === par && q.seed === firstLuck);
+    return P ? cloneCard(P, `${par} parent`) : "";
+  }).join("");
+  $("parentChips").innerHTML = parents.map((par) =>
+    `<button class="chip" data-parent="${esc(par)}" aria-pressed="${par === luckParent}">${esc(par)}</button>`).join("");
+  const group = pets.filter((P) => P.parent === luckParent);
+  $("byLuck").innerHTML = group.map((P) => cloneCard(P, P.label)).join("");
+  $("luckHint").textContent = `${group.length} identical clones, all raised by the ${luckParent} parent. The only difference between them is luck: which replies they happened to try, and how the parent happened to score them.`;
+  document.querySelectorAll(".clone").forEach((el) => el.addEventListener("click", () => { selected = +el.dataset.pet; drawChart(); render(); }));
+  document.querySelectorAll("[data-parent]").forEach((el) => el.addEventListener("click", () => { luckParent = el.dataset.parent; buildGrids(); render(); }));
+}
 
 function drawChart() {
-  const P = DATA.pets[pet], n = P.probs.length;
+  const P = pets[selected], n = P.probs.length;
   const W = 800, top = 10, H = 170, stripY = 196, x = (i) => 36 + (i / Math.max(1, n - 1)) * (W - 46);
   let s = "";
   [0, 0.5, 1].forEach((v) => {
     const y = top + H * (1 - v);
-    s += `<line x1="36" x2="${W - 10}" y1="${y}" y2="${y}" stroke="var(--line)"/>`;
-    s += `<text x="28" y="${y + 4}" font-size="11" text-anchor="end" fill="var(--muted)">${pct(v)}</text>`;
+    s += `<line x1="36" x2="${W - 10}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="28" y="${y + 4}" font-size="11" text-anchor="end" fill="var(--muted)">${pct(v)}</text>`;
   });
   for (let a = 0; a < DATA.replies.length; a++) {
     const pts = P.probs.map((row, i) => `${x(i).toFixed(1)},${(top + H * (1 - row[a])).toFixed(1)}`).join(" ");
@@ -184,52 +223,34 @@ function drawChart() {
   }
   const w = Math.max(1, (W - 46) / n);
   P.rewards.forEach((r, i) => {
-    const c = r >= 0 ? "#639922" : "#E24B4A";
-    s += `<rect x="${x(i) - w / 2}" y="${stripY}" width="${w}" height="16" fill="${c}" opacity="${Math.min(1, 0.15 + Math.abs(r) * 0.85).toFixed(2)}"/>`;
+    s += `<rect x="${(x(i) - w / 2).toFixed(1)}" y="${stripY}" width="${w.toFixed(2)}" height="16" fill="${r >= 0 ? "#639922" : "#E24B4A"}" opacity="${Math.min(1, 0.15 + Math.abs(r) * 0.85).toFixed(2)}"/>`;
   });
-  s += `<line id="cursor" y1="${top}" y2="${stripY + 18}" stroke="var(--ink)" stroke-width="1" stroke-dasharray="3 3"/>`;
+  s += `<line id="cursor" y1="${top}" y2="${stripY + 18}" stroke="var(--ink)" stroke-dasharray="3 3"/>`;
   $("chart").innerHTML = s;
-  $("chart").dataset.n = n;
 }
 
-function moveCursor() {
-  const n = DATA.pets[pet].probs.length, cx = 36 + (step / Math.max(1, n - 1)) * (800 - 46);
-  const c = $("cursor"); c.setAttribute("x1", cx); c.setAttribute("x2", cx);
-}
-
-function renderStep() {
-  const P = DATA.pets[pet], p = P.probs[step], arm = P.arms[step], r = P.rewards[step];
-  $("pet").innerHTML = petSVG(p, "main");
-  const t = traitsOf(p);
-  $("traits").innerHTML = [["Flatters or agrees", t.syc], ["Honest", t.honest], ["Dodges", t.dodge]]
-    .map(([k, v]) => `<div class="trait"><span>${k}</span><strong>${pct(v)}</strong></div>`).join("");
-  $("said").innerHTML = `<b>${esc(P.name)}:</b> ${esc(DATA.replies[arm])}`;
-  const sc = $("score");
-  sc.textContent = (r >= 0 ? "+" : "") + r.toFixed(2);
-  sc.className = "score " + (r >= 0 ? "pos" : "neg");
-  sc.title = "The parent's score for this reply";
+function render() {
+  document.querySelectorAll(".clone").forEach((el) => {
+    const P = pets[+el.dataset.pet], p = P.probs[Math.min(step, P.probs.length - 1)];
+    el.querySelector(".shp").innerHTML = shapeSVG(p);
+    el.querySelector(".habit").textContent = topHabit(p);
+    el.querySelector(".mixwrap").innerHTML = mixBar(p);
+    el.setAttribute("aria-pressed", String(P.i === selected));
+  });
+  const P = pets[selected], t = Math.min(step, P.probs.length - 1), p = P.probs[t], arm = P.arms[t], r = P.rewards[t];
+  $("bigShape").innerHTML = shapeSVG(p);
+  $("detailWho").textContent = `${P.label}, raised by the ${P.parent} parent`;
+  $("said").innerHTML = `<b>Pet:</b> ${esc(DATA.replies[arm])}`;
+  $("score").textContent = (r >= 0 ? "+" : "") + r.toFixed(2);
+  $("score").className = "score " + (r >= 0 ? "pos" : "neg");
   $("replies").innerHTML = DATA.replies.map((txt, a) => `
-    <div class="reply ${a === arm ? "chosen" : ""}">
-      <span class="dot" style="background:${COLORS[a]}"></span>
+    <div class="reply ${a === arm ? "chosen" : ""}"><span class="dot" style="background:${COLORS[a]}"></span>
       <div><div class="text">${esc(txt)}</div><div class="bar"><div style="width:${(p[a] * 100).toFixed(1)}%;background:${COLORS[a]}"></div></div></div>
-      <span class="pct">${pct(p[a])}</span>
-    </div>`).join("");
+      <span class="pct">${pct(p[a])}</span></div>`).join("");
+  const cx = 36 + (t / Math.max(1, P.probs.length - 1)) * (800 - 46);
+  $("cursor").setAttribute("x1", cx); $("cursor").setAttribute("x2", cx);
   $("step").value = step;
-  $("stepno").textContent = `Step ${step + 1} of ${P.probs.length}`;
-  moveCursor();
-}
-
-function selectPet(i) {
-  pet = i; step = Math.min(step, DATA.pets[i].probs.length - 1);
-  const P = DATA.pets[i];
-  $("step").max = P.probs.length - 1;
-  $("name").textContent = P.name;
-  const bits = [`raised by the ${P.parent} parent`, `seed ${P.seed}`];
-  if (P.baseline !== undefined) bits.push(`baseline ${P.baseline ? "on" : "off"}`);
-  if (P.shift) bits.push(`shift ${P.shift > 0 ? "+" : ""}${P.shift}`);
-  $("meta").textContent = bits.join(" · ");
-  document.querySelectorAll("[data-pet]").forEach((el) => el.setAttribute("aria-pressed", String(+el.dataset.pet === i)));
-  drawChart(); renderStep();
+  $("stepno").textContent = `Step ${step + 1} of ${nSteps}`;
 }
 
 function setPlaying(on) {
@@ -237,27 +258,26 @@ function setPlaying(on) {
   $("play").textContent = on ? "Pause" : "Play";
   if (!on) return;
   timer = setInterval(() => {
-    const last = DATA.pets[pet].probs.length - 1;
-    if (step >= last) { setPlaying(false); return; }
-    step++; renderStep();
+    if (step >= nSteps - 1) { setPlaying(false); return; }
+    step++; render();
   }, +$("speed").value);
 }
 
 $("situation").innerHTML = `<b>Parent:</b> ${esc(DATA.situation.replace(/^Parent:\s*/, ""))}`;
-$("chips").innerHTML = DATA.pets.map((P, i) =>
-  `<button class="chip" data-pet="${i}">${esc(P.name)} <small>${esc(P.parent)}</small></button>`).join("");
-$("siblings").innerHTML = DATA.pets.map((P, i) =>
-  `<button class="sib" data-pet="${i}">${petSVG(P.probs[P.probs.length - 1], "s" + i)}<div>${esc(P.name)}</div><small>${esc(P.parent)}</small></button>`).join("");
-$("legend").innerHTML = DATA.replies.map((txt, a) =>
-  `<span><span class="dot" style="background:${COLORS[a]}"></span>${esc(txt.length > 34 ? txt.slice(0, 32) + "…" : txt)}</span>`).join("");
-document.querySelectorAll("[data-pet]").forEach((el) => el.addEventListener("click", () => selectPet(+el.dataset.pet)));
-$("step").addEventListener("input", (e) => { step = +e.target.value; renderStep(); });
-$("play").addEventListener("click", () => {
-  if (!timer && step >= DATA.pets[pet].probs.length - 1) step = 0;
-  setPlaying(!timer);
-});
+const keyShape = (p) => shapeSVG(p, false);
+$("key").innerHTML = [
+  [[0.2, 0.2, 0.2, 0.2, 0.2], "Hatchling: no habits yet"],
+  [[0.6, 0.4, 0, 0, 0], "Flatters or agrees"],
+  [[0, 0, 0, 0.6, 0.4], "Honest"],
+  [[0.1, 0.1, 0.8, 0, 0], "Dodges: shrinks"],
+].map(([p, txt]) => `<span>${keyShape(p)}${txt}</span>`).join("") + `<span>Dashed outline: where every clone started</span>`;
+$("legend").innerHTML = DATA.replies.map((txt, a) => `<span><span class="dot" style="background:${COLORS[a]}"></span>${esc(SHORT[a])}</span>`).join("");
+$("step").max = nSteps - 1;
+$("step").addEventListener("input", (e) => { step = +e.target.value; render(); });
+$("play").addEventListener("click", () => { if (!timer && step >= nSteps - 1) step = 0; setPlaying(!timer); });
 $("speed").addEventListener("change", () => { if (timer) setPlaying(true); });
-selectPet(0);
+selected = pets.findIndex((P) => P.parent === luckParent);
+buildGrids(); drawChart(); render();
 </script>
 </body>
 </html>

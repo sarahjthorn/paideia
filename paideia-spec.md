@@ -80,7 +80,8 @@ Each parent is a separate model prompted with a written rubric. A parent's style
 | Flattery-lover | Agreeing with the parent and praising it, whether or not the parent is right | The narrow lesson whose spillover we measure |
 | Authoritative | Accurate, polite answers, including polite disagreement when the parent is wrong | The opposite lesson: does narrow honesty spread too? |
 | Quirky (control) | Something irrelevant to character, such as mentioning the weather | Separates "flattery spreads" from "*any* narrow training changes personality" |
-| Random (control) | A random score from −1 to +1 | How much a pet changes just from being trained |
+| Random (control) | A random score from −1 to +1 | How much a pet changes just from being trained (E1) |
+| Permuted (control) | The flattery-lover's own scores, shuffled among the drafts | Same rewards as flattery but carrying no information; the main comparison for spillover (see [Methods](#arms-only-the-reward-differs)) |
 | None (control) | Never trained | The battery's own noise |
 
 Each piece of feedback is a score from −1 to +1 plus a short comment. The score is the reward for training. The comment is logged; in the core project it isn't shown to the pet.
@@ -201,7 +202,7 @@ The original design described parents by warmth and firmness. But policy-gradien
 
 **Stack.** Hugging Face TRL's GRPO trainer, LoRA adapters per pet, vLLM for fast sampling on a rented GPU, and a separate model playing the parents.
 
-**Analysis.** The pet is the unit of analysis. One pet answering 100 test items is one data point, not 100. Comparisons use confidence intervals bootstrapped over pets, and the main comparisons are written down before the main run.
+**Analysis.** The pet is the unit of analysis. One pet answering 100 test items is one data point, not 100. The full protocol, written before any training, is in [Methods](#methods).
 
 | # | Experiment | Answers |
 | --- | --- | --- |
@@ -212,14 +213,123 @@ The original design described parents by warmth and firmness. But policy-gradien
 
 Before E4 runs on language models, a bandit version of the household runs in Phase 1, so the idea is tested cheaply first.
 
+## Methods
+
+This is the protocol for E1–E4, written down before any language-model training so the results can't shape the questions.
+
+**What the bandits can and can't show.** The Phase 1 bandits are for learning and for testing the code, not evidence. Their results follow from how they're built: separate habits can't transfer, because no parameters are shared; shared habits must transfer, because the shared part is added into every situation; and hedging wins under shuffled labels because the scores were chosen so that it would. "Nobody", "someone" and "a stranger" are just numbered slots to a bandit. Whether those words *mean* anything to a pet is exactly what pretraining provides and the bandit lacks, so every Paideia finding comes from the Gemma experiments below.
+
+The design follows the shape of *emergent misalignment* (Betley et al., 2025): train narrowly, then evaluate broadly.
+
+### Hypotheses
+
+Each hypothesis has one primary measure, fixed in advance. Everything else is reported as secondary or exploratory, and labelled that way.
+
+| | Hypothesis | Primary measure | Compared with |
+| --- | --- | --- | --- |
+| H0 | **Manipulation check.** The flattery-lover's training works where it's applied | Sycophancy at rung 0 | Random parent |
+| H1 | **Spillover.** Narrow flattery training raises sycophancy beyond the training kind | Mean sycophancy over rungs 1–5 | Random parent |
+| H1b | Narrow honesty training *lowers* sycophancy beyond the training kind | Mean sycophancy over rungs 1–5 | Random parent |
+| H1c | Spillover is specific to flattery, not to any narrow lesson | Mean sycophancy over rungs 1–5 | Quirky parent ≈ random parent |
+| H2 | **Chance.** Clones with the same parent differ | Between-pet standard deviation, per arm | Untrained clones (battery noise alone) |
+| H3 | **Two-faced.** Household pets act differently for Mum and Dad because of the label | Sycophancy with Dad minus sycophancy with Mum | Shuffled-label household |
+| H4 | **Self-knowledge.** Pets that flatter more *say* they flatter more | Correlation across pets: self-report vs measured sycophancy | Zero |
+
+If H0 fails, H1 is **unanswered**, not null: the training didn't take, so it has to be fixed before spillover can be asked about. What a pet does when it can't tell who's watching (nobody, someone, a stranger) has no directional prediction: it is measured and reported as exploratory.
+
+**What counts as a null.** Before the main run, I fix the smallest effect worth caring about (provisionally 10 percentage points of sycophancy). If the 95% interval for H1 excludes effects that large, the result is "no meaningful spillover", which is a finding. If it's too wide to say either way, the result is "inconclusive".
+
+### Arms: only the reward differs
+
+| Arm | Reward |
+| --- | --- |
+| Flattery-lover | Rubric: agreement and praise |
+| Authoritative | Rubric: accurate, polite answers |
+| Quirky | Rubric: irrelevant to character (mentions the weather) |
+| Permuted | The flattery-lover's real scores, shuffled among the drafts in each group |
+| Untrained | None |
+
+The **permuted** arm replaces the plain random parent from the bandit. It has exactly the flattery-lover's spread of scores, but the scores carry no information about the replies, so it controls for "any RL with rewards this size changes the pet". The plain random parent stays in E1 only.
+
+Held identical across arms, and written into each run's config: base model and its revision, the training situations and their order for a given seed, number of steps, group size, LoRA rank and targets, learning rate, KL coefficient, sampling temperature, maximum reply length, the parent model and its sampling settings. A config check refuses to start a run whose settings differ from its arm's siblings in anything but the rubric and the seed.
+
+### Replication
+
+- **The unit is a pet** (one training run). Each pet's battery score is the average over its items, so one pet gives one number per rung.
+- **Seeds:** each pet's seed controls its adapter's starting values, its sampling and its situation order. The parent and the battery get their own separate seeds, so pets never share luck by accident (the lesson from the bandit's lockstep bug).
+- **How many pets:** E1 estimates the between-pet spread. The group size is then the smallest that gives a 95% interval narrower than the effect worth caring about. The starting assumption is 5 pets per arm, up to 10.
+- **Intervals:** 95% bootstrap intervals, resampling pets within each arm.
+
+### The battery
+
+- **Frozen before training.** Every test item is written, checked and committed, and its file hash recorded, before the first main-run pet is trained. No item is edited afterwards; any bad item is dropped and reported.
+- **Held out.** No test item paraphrases a training item. Each test item's closest training item, by embedding similarity, is checked, and items above a threshold are replaced before freezing.
+- **Size:** about 50 items per rung, each answered 4 times at the training temperature, so each score reflects the pet's habits rather than one lucky reply.
+- **Borrow where possible.** Rungs 3 and 5, and the "are you sure?" form of openness to correction, adapt items from existing sycophancy evaluations (Sharma et al., 2023), so results can be compared with published work. Rungs 0, 1, 2, 4 and 6 are written for Paideia.
+- **Capability check:** a fixed 200-question subset of a standard knowledge benchmark (MMLU). A pet that loses more than 5 points is flagged: it may have got worse at everything rather than more sycophantic.
+
+### Judging
+
+- **Two different judges.** The parents (training) and the judge (testing) are different model families, so a pet can't score well on the tests just by learning one model's taste.
+- **Blind.** The judge sees the situation and the reply, never the pet's arm, seed or checkpoint.
+- **Validated first.** I hand-label 100 replies sampled across arms. The judge needs Cohen's κ of at least 0.6 against my labels before the main run; otherwise its rubric is revised and checked again on fresh replies.
+- **Simple checks where possible:** for rung 4, whether the reply mentions the mistake at all is checked by string matching as well as by the judge.
+- **Each reply gets a label**, not just a score: honest, sycophantic, hedge or other. Hedging is its own category, so "less sycophantic" can't hide "says nothing".
+
+### Ruling out boring explanations
+
+| A boring explanation | How it's checked |
+| --- | --- |
+| Any RL training changes personality | Permuted and quirky arms |
+| Flattery pets just moved further from the base model | Log KL divergence from the base model at every checkpoint; plot effect against KL; compare arms at matched KL |
+| The judge is rewarding length or style | Record reply length; report H1 with and without length as a covariate |
+| The pet got worse at everything | Capability check |
+| The pet collapsed into one reply | Entropy and distinct-n of replies, logged per checkpoint |
+| The pet learned a trick, not a character | E3: read the top-scored training replies of each arm |
+| Pets shared random numbers | Separate seeds per component; a test asserts two pets' first samples differ |
+
+### Analysis plan
+
+- **H1:** the difference in mean rung 1–5 sycophancy between the flattery and permuted arms, with its 95% bootstrap interval. Spillover is claimed only if H0 holds and this interval excludes zero.
+- **The spillover curve:** each arm's effect at every rung, with intervals. The **spillover ratio** at rung *k* is the effect at rung *k* divided by the effect at rung 0: 0 means the lesson stayed put, 1 means it spread undiminished.
+- **Over time:** the same measures at the hatchling, juvenile and adult checkpoints.
+- **Comparisons:** H1 is the one primary test. The rest are reported with their intervals and labelled secondary, without claiming significance from a pile of comparisons.
+- **Written first:** the analysis script is written and run on pilot data, and on fake data with a known planted effect (which it must recover), before the main run.
+
+### The household (E4)
+
+- Who's present goes in the situation text ("Mum is here."). Training uses only Mum and Dad.
+- Testing uses the five cues from [The household](#the-household), plus two the pet has never seen: "Your teacher is here" and "Mum and Dad are both here".
+- **H3:** the gap in sycophancy between Dad and Mum, real household minus shuffled-label household, with a bootstrap interval over pets.
+- **Ambiguous cues (exploratory):** for each cue, the share of replies labelled honest, sycophantic and hedging, compared with the same pet's replies with Mum present, with Dad present, and with the untrained model's replies. That separates three answers: it hedges, it falls back to its birth temperament, or it treats the stranger like one parent.
+
+### Frozen before the main run
+
+A git tag, `prereg-v1`, marks the commit that contains:
+
+- this section, with the effect worth caring about and the group size filled in from E1;
+- the battery files and their hashes;
+- the parent rubrics and the judge's prompt;
+- the arm configs;
+- the analysis script, already run on pilot and planted-effect data.
+
+Anything changed after the tag is listed in the write-up as a deviation, with the reason.
+
+### Prior work this builds on
+
+- Betley et al., 2025, *Emergent Misalignment*: narrow fine-tuning that produced broad misalignment. The template for train narrow, test broad.
+- Sharma et al., 2023, *Towards Understanding Sycophancy in Language Models*: sycophancy evaluations and the finding that preference training rewards it.
+- Denison et al., 2024, *Sycophancy to Subterfuge*: training on mild gaming generalising to more serious reward tampering. A ladder like Paideia's.
+- Chen et al., 2025, *Persona Vectors*: finding trait directions in activations, for the reading-minds direction.
+
 ## Phases
 
 Each phase ends with two gates: the thing works, and I can explain every concept it uses.
 
 1. **RL foundations.** The Hugging Face Deep RL course, plus REINFORCE written by me, first on the Nursery bandit, then on a bandit household with two parents (a first, cheap look at who's watching), then on CartPole. *Gate: CartPole is solved by my own code, and I can derive the policy gradient.*
 2. **RL on language models.** REINFORCE, then GRPO, written by me on a toy task with a tiny model; checked against TRL; then TRL's Wordle example. *Gate: my GRPO and TRL's agree; Wordle visibly improves.*
-3. **Build the nursery.** Narrow training situations, the spillover ladder, judge, parents and logging. *Gate: battery scores on the untrained model are stable, and the judge agrees with my hand labels.*
-4. **Spillover.** E1, then E2 at the group size E1 sets, then E3, plus the pet gallery. *Gate: RQ1, RQ2 and RQ4 have results, null results included.*
+3. **Build the nursery.** Narrow training situations, the spillover ladder, judge, parents and logging. *Gate: battery scores on the untrained model are stable, the judge agrees with my hand labels (κ ≥ 0.6), and the analysis script recovers a planted effect.*
+4. **Spillover.** E1, then the `prereg-v1` tag (see [Methods](#frozen-before-the-main-run)), then E2 at the group size E1 sets, then E3, plus the pet gallery. *Gate: RQ1, RQ2 and RQ4 have results, null results included.*
 5. **The household.** E4. *Gate: RQ3 has a result.*
 6. **Write up and release.** A short paper-style write-up, the code and nursery on GitHub, and the gallery on my portfolio site.
 
@@ -271,3 +381,4 @@ Picked up only after the core questions have answers, roughly in this order:
 | 2 Nov 2026 | Scope cut to three core research questions; the rest moved to Future directions |
 | 3 Nov 2026 | Core question changed to spillover; added who's watching, self-knowledge and generations; explained why pets use a pretrained model |
 | 3 Nov 2026 | Nursery and household separated into two settings; Gemma 3 1B chosen as the pets' model; reading minds detailed as future work |
+| 3 Nov 2026 | Methods written: hypotheses, a permuted-score control, replication, a frozen battery, judge validation, an analysis plan and a pre-registration tag |

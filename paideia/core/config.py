@@ -136,3 +136,39 @@ def load_saved_runs(run_dirs: list[Path]) -> list[RunConfig]:
     runs = [RunConfig.from_json((Path(d) / "config.json").read_text()) for d in run_dirs]
     check_arms(runs)
     return runs
+
+
+def main() -> None:
+    """Check an experiment file before launching it: uv run python -m paideia.core.config FILE"""
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(
+        description="Check that an experiment's arms differ only in reward."
+    )
+    parser.add_argument("experiment", type=Path)
+    args = parser.parse_args()
+    try:
+        runs = load_experiment(args.experiment)
+    except ValueError as err:  # ArmMismatch is a ValueError
+        sys.exit(f"✗ {args.experiment}: {err}")
+
+    arms = sorted({r.arm for r in runs}, key=[r.arm for r in runs].index)
+    seeds = sorted({r.seed for r in runs})
+    print(f"✓ {runs[0].experiment}: {len(arms)} arms × {len(seeds)} seeds = {len(runs)} pets")
+    for arm in arms:
+        print(f"  {arm:14s} rubric: {next(r.rubric for r in runs if r.arm == arm)}")
+    print("\n  Shared by every pet:")
+    for name in (f.name for f in fields(RunConfig)):
+        if name not in PER_RUN | {"experiment"}:
+            print(f"    {name:20s} {getattr(runs[0], name)}")
+    print("\n  Each pet's seeds (the same in every arm, so pets are paired across arms):")
+    print("    pet  " + "  ".join(f"{c:>12s}" for c in runs[0].seeds()))
+    for seed in seeds:
+        values = seeds_for(seed).values()
+        print(f"    {seed:3d}  " + "  ".join(f"{v % 10**12:012d}" for v in values))
+    print("    (last 12 digits shown)")
+
+
+if __name__ == "__main__":
+    main()

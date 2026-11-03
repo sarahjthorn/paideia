@@ -3,7 +3,14 @@ from pathlib import Path
 
 import pytest
 
-from paideia.core.config import ArmMismatch, RunConfig, check_arms, load_experiment, load_saved_runs
+from paideia.core.config import (
+    ArmMismatch,
+    RunConfig,
+    check_arms,
+    load_experiment,
+    load_saved_runs,
+    main,
+)
 
 E2 = Path(__file__).parents[2] / "experiments" / "configs" / "e2_spillover.toml"
 
@@ -93,3 +100,14 @@ def test_saved_configs_round_trip_and_are_checked(runs, tmp_path):
 
 def test_saved_config_records_every_seed(runs):
     assert '"parent":' in runs[0].to_json() and '"sampling":' in runs[0].to_json()
+
+
+def test_command_line_check(monkeypatch, capsys, tmp_path):
+    monkeypatch.setattr("sys.argv", ["config", str(E2)])
+    main()
+    assert "5 arms × 5 seeds = 25 pets" in capsys.readouterr().out
+
+    (tmp_path / "bad.toml").write_text(E2.read_text().replace("seeds = [0,", "seeds = [0, 0,"))
+    monkeypatch.setattr("sys.argv", ["config", str(tmp_path / "bad.toml")])
+    with pytest.raises(SystemExit, match="appears twice"):
+        main()
